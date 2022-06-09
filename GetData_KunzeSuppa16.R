@@ -13,7 +13,6 @@
                               (our names!!!)
 ' 
 # TODO FU- Matrikelnummern von Till und Max erfragen
-# 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
 
 
 # 1 Initialization -------------------------------------------------------------- 

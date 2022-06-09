@@ -12,7 +12,7 @@
                                written by 
                               (our names)
 ' 
-# TODO FU- Matrikelnummern von Till und Max erfargen! 
+# TODO FU- Matrikelnummern von Till und Max erfragen! 
 
 
 

@@ -10,10 +10,8 @@
   Organization, 133, pp. 213-235, https://doi.org/10.1016/j.jebo.2016.11.012.
          
                                written by 
-                              (our names!!!)
+                              (our names)
 ' 
-# TODO FU- Matrikelnummern von Till und Max erfragen
-# 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
 
 
 # 1 Initialization -------------------------------------------------------------- 

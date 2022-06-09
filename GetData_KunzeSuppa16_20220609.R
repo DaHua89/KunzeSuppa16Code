@@ -172,7 +172,7 @@ data_all <- universal %>%
 
 
 # 7 Data cleaning --------------------------------------------------------------
-## 7.1 Rename and recode main variables ----------------------------------------
+## 7.1 Rename and recode variables ---------------------------------------------
 data_all <- data_all %>% renaming() %>% recoding() 
 
 ## 7.1 Subsetting dataset ------------------------------------------------------

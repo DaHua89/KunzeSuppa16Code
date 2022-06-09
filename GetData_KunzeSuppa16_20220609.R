@@ -33,7 +33,7 @@ lapply(libraries, library, quietly = TRUE, character.only = TRUE)
 
 
 # 2 Variable selection: Regressands and Regressors ----------------------------
-## 2.1. Regressands ------------------------------------------------------------
+## 2.1 Regressands ------------------------------------------------------------
 # Questionnaire can be found here: 
 # https://paneldata.org/soep-core/inst/soep-core-2011-pe/3 
 # a) CULTURE:   pli0090_h  (pl dataset; more info at: https://paneldata.org/soep-core/data/pl/pli0090_h)

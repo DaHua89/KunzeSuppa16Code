@@ -200,7 +200,7 @@ data_all <- data_all %>% renaming() %>% recoding()
 
 
 
-## 7.1 Subsetting dataset ------------------------------------------------------
+## 7.2 Subsetting dataset ------------------------------------------------------
 datasets_mainvar <- list()
 main_vars <- c("culture", "cinema", "sports", "social", "help", "volunteer")
 for (i in 1:length(main_vars)){

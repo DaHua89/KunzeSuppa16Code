@@ -99,7 +99,34 @@ PGEN <- read_dta(file = file.path('pgen.dta'),
 
 HL <- read_dta(file = file.path('hl.dta'), 
                  col_select = c('cid','hid', 'syear',   
-                                "hlf0291" ))  # person needing care in hh (15) 
+                                "hlf0291" ))  # person needing care in hh (15)
+       
+#EDU-Data (change WD to /raw)
+       
+setwd("~/Downloads/Stata/raw")
+       
+ed1 = read_dta(file = file.path("ipequiv.dta"), col_select = c("pid", 'cid','hid', 'syear',   
+                                                              "d1110992" ))
+ed2 = read_dta(file = file.path("kpequiv.dta"), col_select = c("pid", 'cid','hid', 'syear',   
+                                                               "d1110994" ))
+ed3 = read_dta(file = file.path("mpequiv.dta"), col_select = c("pid", 'cid','hid', 'syear',   
+                                                             "d1110996" ))
+ed4 = read_dta(file = file.path("npequiv.dta"), col_select = c("pid", 'cid','hid', 'syear',   
+                                                              "d1110997" ))
+ed5 = read_dta(file = file.path("rpequiv.dta"), col_select = c("pid", 'cid','hid', 'syear',   
+                                                               "d1110901" ))
+ed6 = read_dta(file = file.path("vpequiv.dta"), col_select = c("pid", 'cid','hid', 'syear',   
+                                                               "d1110905" ))
+ed7 = read_dta(file = file.path("xpequiv.dta"), col_select = c("pid", 'cid','hid', 'syear',   
+                                                               "d1110907" ))
+ed8 = read_dta(file = file.path("zpequiv.dta"), col_select = c("pid", 'cid','hid', 'syear',   
+                                                               "d1110909" ))
+ed9 = read_dta(file = file.path("bbpequiv.dta"), col_select = c("pid", 'cid','hid', 'syear',   
+                                                                "d1110911" ))
+
+colnames(ed1) = colnames(ed2) = colnames(ed3) = colnames(ed4) = colnames(ed5) = colnames(ed6) = colnames(ed7) = colnames(ed8) = colnames(ed9)
+
+EDU =  rbind(ed1,ed2,ed3,ed4,ed5,ed6,ed7,ed8,ed9)
 
 
 # 4 Load sub- functions -------------------------------------------------------
@@ -116,11 +143,12 @@ renaming <- function(df){
                   volunteer = "pli0096_h", 
                   # west = "", 
                   married = "pgfamstd", 
-                  #yearsedu = "", 
+                  yearsedu = "d1110911", 
                   needcare = "hlf0291",
                   EP = 'pgemplst',
                   OLF = 'pglfs',
                   UEPC = 'plb0304_h') 
+
                   # children = ""
   df <- df %>% rename(any_of(var_names))
   return(df)
@@ -162,7 +190,7 @@ recoding <- function(df){
     # Modifications on our regressors 
     mutate(married = replace(married, married>1, 0),  # Yes(1); Otherwise (0)
            married = replace(married, married < 0, NA), # define negative values as missing values 
-           #yearsedu = replace(yearsedu, yearsedu <0, NA), # define negative values as missing values 
+           yearsedu = replace(yearsedu, yearsedu <0, NA), # define negative values as missing values 
            needcare = replace(needcare, needcare <0, NA), # define negative values as missing values 
            needcare = replace(needcare, needcare>1, 0)) %>% # Yes(1); Otherwise (0)
     #children = replace(children, children <0, NA), 
@@ -187,6 +215,7 @@ universal <- PPATHL%>%
   left_join(PL) %>%
   left_join(PGEN) %>%
   left_join(HL) %>%
+  left_join(EDU) %>%
   arrange(pid, syear, hid) # order
 
 

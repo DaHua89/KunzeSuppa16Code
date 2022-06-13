@@ -203,7 +203,7 @@ recoding <- function(df){
          OLF = as.numeric(OLF %in% c(1:5, 7:10, 13))) %>% # OLF variable construction
     mutate(UE = 1-OLF-EP) %>% # UE variable construction
     mutate(UEO = UE-UEPC) %>% # UEO variable construction
-    # mutate(UEO = replace(UEO, OLF==1, 0))
+    mutate(UEO = replace(UEO, OLF==1, 0)) # To correct for individuals who are OLF and also lost their job because of plant closure
   
   return(df)
   
@@ -261,28 +261,30 @@ mean(dculture$age)
 mean(dculture$married, na.rm = TRUE)
 mean(dculture$needcare, na.rm = TRUE)
 
-
 mean(dcinema$cinema)
 mean(dcinema$married, na.rm = TRUE)
 mean(dcinema$needcare, na.rm = TRUE)
 
-
 mean(dsports$sports)
 mean(dsports$married, na.rm = TRUE)
 mean(dsports$needcare, na.rm = TRUE)
-
 
 mean(dsocial$social)
 mean(dvolunteer$volunteer)
 mean(dhelp$help)
 
 mean(dculture$EP)
-mean(dsocial$UE)
+mean(dculture$UE)
 mean(dculture$OLF)
 mean(dculture$UEPC)
 mean(dculture$UEO)
 
-
+mean(dculture$yearsedu, na.rm = T)
+mean(dcinema$yearsedu, na.rm = T)
+mean(dsports$yearsedu, na.rm = T)
+mean(dsocial$yearsedu, na.rm = T)
+mean(dvolunteer$yearsedu, na.rm = T)
+mean(dhelp$yearsedu, na.rm = T)
 
 ## "Zwischenoutput" --------------------------------------------------------------
 # Please comment out the pair of i and j which an output should be created for:

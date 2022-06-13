@@ -291,7 +291,7 @@ mean(dhelp$yearsedu, na.rm = T)
 # i <- dculture
 # j <- "culture"
 
-# <- dcinema
+# i <- dcinema
 # j<- "cinema"
 
 # i <- dsports 

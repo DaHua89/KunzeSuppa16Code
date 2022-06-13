@@ -175,7 +175,7 @@ recoding <- function(df){
          OLF = as.numeric(OLF %in% c(1:5, 7:10, 13))) %>% # OLF variable construction
     mutate(UE = 1-OLF-EP) %>% # UE variable construction
     mutate(UEO = UE-UEPC) %>% # UEO variable construction
-    mutate(UEO = replace(UEO, OLF==1, 0))
+    # mutate(UEO = replace(UEO, OLF==1, 0))
   
   return(df)
   

@@ -10,7 +10,7 @@
   Organization, 133, pp. 213-235, https://doi.org/10.1016/j.jebo.2016.11.012.
          
                                written by 
-                              (our names!)
+                              (our names)
 ' 
 
 
@@ -18,8 +18,8 @@
 rm(list=ls(all=TRUE))         # clear environment
 graphics.off()                # clear console
 # set working directory 
-setwd("~/Downloads/Stata/") # Isabell 
-# setwd("C:/Users/User/Documents/SOEP-CORE.v37teaching_STATA/") # Till 
+# setwd("~/Downloads/Stata/") # Isabell 
+setwd("C:/Users/User/Documents/SOEP-CORE.v37teaching_STATA/Stata/") # Till 
 # setwd() # Max
 # install & load packages
 libraries = c("haven", "dplyr", "labelled", "tidyr", "ggplot2", "Hmisc", 
@@ -47,11 +47,11 @@ lapply(libraries, library, quietly = TRUE, character.only = TRUE)
 # Artistic or musical activities: pli0093_h (pl)
 
 ## 2.2 Regressors --------------------------------------------------------------
-# 1) EMPLOYED:
-# 2) UNEMPLOYED:
-# 3) OUT OF LABOUR FORCE (OLF):
-# 4) PLANT CLOSER UNEMPLOYED:
-# 5) OTHER UNEMPLOYED: 
+# 1) EMPLOYED (EP): pgemplst (pgen dataset, more info at https://paneldata.org/soep-core/data/pgen/pgemplst)
+# 2) UNEMPLOYED (UE): derived as 1-OLF-EMPLOYED
+# 3) OUT OF LABOUR FORCE (OLF): pglfs (pgen dataset, more info at https://paneldata.org/soep-core/data/pgen/pglfs)
+# 4) PLANT CLOSER UNEMPLOYED (UEPC): plb0304_h (pl dataset, more info at: https://paneldata.org/soep-core/data/pl/plb0304_h)
+# 5) OTHER UNEMPLOYED (UEO): derived as UNEMPLOYED - PLANT CLOSER UNEMPLOYED
 # 6) AGE: 'gebjahr' - 'syear', whereas 'gebjahr' (ppath dataset; https://paneldata.org/soep-core/data/ppath/gebjahr)
 # 7) YEARS OF EDUCATION: (NICHT: lb0187 (biol))
 # 8) WORK DISABILITY:
@@ -88,11 +88,14 @@ PL <- read_dta(file = file.path('pl.dta'),
                               "pli0092_h", # sports (c)
                               "pli0094_h", # social (d)
                               "pli0095_h", # help (e)
-                              "pli0096_h")) # volunteer (f)
+                              "pli0096_h", # volunteer (f)
+                              'plb0304_h')) # UEPC (4)
 
 PGEN <- read_dta(file = file.path('pgen.dta'), 
                    col_select = c('pid', 'cid','hid', 'syear',   
-                                  "pgfamstd" ))  # married (9)   
+                                  "pgfamstd", # married (9) 
+                                  'pgemplst', # EP (1)
+                                  'pglfs')) # OLF (3)    
 
 HL <- read_dta(file = file.path('hl.dta'), 
                  col_select = c('cid','hid', 'syear',   
@@ -114,7 +117,10 @@ renaming <- function(df){
                   # west = "", 
                   married = "pgfamstd", 
                   #yearsedu = "", 
-                  needcare = "hlf0291") 
+                  needcare = "hlf0291",
+                  EP = 'pgemplst',
+                  OLF = 'pglfs',
+                  UEPC = 'plb0304_h') 
                   # children = ""
   df <- df %>% rename(any_of(var_names))
   return(df)
@@ -158,13 +164,19 @@ recoding <- function(df){
            married = replace(married, married < 0, NA), # define negative values as missing values 
            #yearsedu = replace(yearsedu, yearsedu <0, NA), # define negative values as missing values 
            needcare = replace(needcare, needcare <0, NA), # define negative values as missing values 
-           needcare = replace(needcare, needcare>1, 0)) # Yes(1); Otherwise (0)
+           needcare = replace(needcare, needcare>1, 0)) %>% # Yes(1); Otherwise (0)
     #children = replace(children, children <0, NA), 
     #children0 = children ==0, 
     #children1 = children ==1, 
     #children2 = children == 2, 
     #children3plus = children > 2)
-    
+    mutate(UEPC = as.numeric(EP %in% c(5) & UEPC %in% c(1)), # UEPC variable construction
+           EP = as.numeric(EP %in% c(1, 2, 3, 4, 6)), # EP variable construction
+         OLF = as.numeric(OLF %in% c(1:5, 7:10, 13))) %>% # OLF variable construction
+    mutate(UE = 1-OLF-EP) %>% # UE variable construction
+    mutate(UEO = UE-UEPC) %>% # UEO variable construction
+    # mutate(UEO = replace(UEO, OLF==1, 0))
+  
   return(df)
   
 }
@@ -231,10 +243,16 @@ mean(dsports$married, na.rm = TRUE)
 mean(dsports$needcare, na.rm = TRUE)
 
 
-
 mean(dsocial$social)
 mean(dvolunteer$volunteer)
 mean(dhelp$help)
+
+mean(dculture$EP)
+mean(dsocial$UE)
+mean(dculture$OLF)
+mean(dculture$UEPC)
+mean(dculture$UEO)
+
 
 
 ## "Zwischenoutput" --------------------------------------------------------------
@@ -265,7 +283,6 @@ stargazer(data = as.data.frame(i[c(j,"age", "married", "needcare")]),
           notes.align = "l",
           header = FALSE,
           notes = c(paste("N:", nrow(i)), paste("Individuals:", length(unique(i$pid)))))
-
 
 
 

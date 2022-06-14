@@ -24,7 +24,7 @@ setwd("~/Downloads/Stata/") # Isabell
 raw_path <- "raw"
 # install & load packages
 libraries = c("haven", "dplyr", "labelled", "tidyr", "ggplot2", "Hmisc", 
-              "stringi", "stargazer", "lubridate", "todor")
+              "stringi", "stargazer", "lubridate", "todor", "stringr")
 lapply(libraries, function(x) if (!(x %in% installed.packages())) 
 { install.packages(x) })
 lapply(libraries, library, quietly = TRUE, character.only = TRUE)

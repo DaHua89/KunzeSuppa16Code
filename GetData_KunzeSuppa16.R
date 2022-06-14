@@ -18,9 +18,10 @@
 rm(list=ls(all=TRUE))         # clear environment
 graphics.off()                # clear console
 # set working directory 
-# setwd("~/Downloads/Stata/") # Isabell 
-setwd("C:/Users/User/Documents/SOEP-CORE.v37teaching_STATA/Stata/") # Till 
-# setwd() # Max
+setwd("~/Downloads/Stata/") # Isabell 
+#setwd("C:/Users/User/Documents/SOEP-CORE.v37teaching_STATA/Stata/") # Till 
+#setwd() # Max
+raw_path <- "raw"
 # install & load packages
 libraries = c("haven", "dplyr", "labelled", "tidyr", "ggplot2", "Hmisc", 
               "stringi", "stargazer", "lubridate", "todor")
@@ -53,7 +54,7 @@ lapply(libraries, library, quietly = TRUE, character.only = TRUE)
 # 4) PLANT CLOSER UNEMPLOYED (UEPC): plb0304_h (pl dataset, more info at: https://paneldata.org/soep-core/data/pl/plb0304_h)
 # 5) OTHER UNEMPLOYED (UEO): derived as UNEMPLOYED - PLANT CLOSER UNEMPLOYED
 # 6) AGE: 'gebjahr' - 'syear', whereas 'gebjahr' (ppath dataset; https://paneldata.org/soep-core/data/ppath/gebjahr)
-# 7) YEARS OF EDUCATION: (NICHT: lb0187 (biol))
+# 7) YEARS OF EDUCATION: d1110992, d1110994, d1110996, d1110997, d1110901, d1110905, d1110907, d1110909, d1110911
 # 8) WORK DISABILITY:
 # 9) MARRIED:  pgfamstd (pgen dataset; https://paneldata.org/soep-is/data/pgen/pgfamstd)
 # 10) NUMBER OF CHILDREN: 
@@ -100,34 +101,30 @@ PGEN <- read_dta(file = file.path('pgen.dta'),
 HL <- read_dta(file = file.path('hl.dta'), 
                  col_select = c('cid','hid', 'syear',   
                                 "hlf0291" ))  # person needing care in hh (15)
-       
-#EDU-Data (change WD to /raw)
-       
-setwd("~/Downloads/Stata/raw")
-       
-ed1 = read_dta(file = file.path("ipequiv.dta"), col_select = c("pid", 'cid','hid', 'syear',   
+
+ed1 = read_dta(file = file.path(raw_path, "ipequiv.dta"), col_select = c("pid", 'cid','hid', 'syear',   
                                                               "d1110992" ))
-ed2 = read_dta(file = file.path("kpequiv.dta"), col_select = c("pid", 'cid','hid', 'syear',   
+ed2 = read_dta(file = file.path(raw_path,"kpequiv.dta"), col_select = c("pid", 'cid','hid', 'syear',   
                                                                "d1110994" ))
-ed3 = read_dta(file = file.path("mpequiv.dta"), col_select = c("pid", 'cid','hid', 'syear',   
+ed3 = read_dta(file = file.path(raw_path,"mpequiv.dta"), col_select = c("pid", 'cid','hid', 'syear',   
                                                              "d1110996" ))
-ed4 = read_dta(file = file.path("npequiv.dta"), col_select = c("pid", 'cid','hid', 'syear',   
+ed4 = read_dta(file = file.path(raw_path,"npequiv.dta"), col_select = c("pid", 'cid','hid', 'syear',   
                                                               "d1110997" ))
-ed5 = read_dta(file = file.path("rpequiv.dta"), col_select = c("pid", 'cid','hid', 'syear',   
+ed5 = read_dta(file = file.path(raw_path,"rpequiv.dta"), col_select = c("pid", 'cid','hid', 'syear',   
                                                                "d1110901" ))
-ed6 = read_dta(file = file.path("vpequiv.dta"), col_select = c("pid", 'cid','hid', 'syear',   
+ed6 = read_dta(file = file.path(raw_path,"vpequiv.dta"), col_select = c("pid", 'cid','hid', 'syear',   
                                                                "d1110905" ))
-ed7 = read_dta(file = file.path("xpequiv.dta"), col_select = c("pid", 'cid','hid', 'syear',   
+ed7 = read_dta(file = file.path(raw_path,"xpequiv.dta"), col_select = c("pid", 'cid','hid', 'syear',   
                                                                "d1110907" ))
-ed8 = read_dta(file = file.path("zpequiv.dta"), col_select = c("pid", 'cid','hid', 'syear',   
+ed8 = read_dta(file = file.path(raw_path,"zpequiv.dta"), col_select = c("pid", 'cid','hid', 'syear',   
                                                                "d1110909" ))
-ed9 = read_dta(file = file.path("bbpequiv.dta"), col_select = c("pid", 'cid','hid', 'syear',   
+ed9 = read_dta(file = file.path(raw_path,"bbpequiv.dta"), col_select = c("pid", 'cid','hid', 'syear',   
                                                                 "d1110911" ))
 
 colnames(ed1) = colnames(ed2) = colnames(ed3) = colnames(ed4) = colnames(ed5) = colnames(ed6) = colnames(ed7) = colnames(ed8) = colnames(ed9)
 
 EDU =  rbind(ed1,ed2,ed3,ed4,ed5,ed6,ed7,ed8,ed9)
-
+rm(ed1, ed2, ed3, ed4, ed5, ed6, ed7, ed8, ed9)
 
 # 4 Load sub- functions -------------------------------------------------------
 # The renaming() sub-function takes a dataframe as its only argument. 
@@ -255,7 +252,9 @@ for (i in 1:length(main_vars)){
 }
 rm(df_crop, currentvar, allothermainvars ) # remove irrelevant variables from global console
 list2env( datasets_mainvar , .GlobalEnv ) # create 6 dataframes from list "datasets_mainvar"
-# checking:
+
+# 8 Summary Statistics ---------------------------------------------------------
+## 8.1 first overview ----------------------------------------------------------
 mean(dculture$culture)
 mean(dculture$age)
 mean(dculture$married, na.rm = TRUE)
@@ -286,12 +285,12 @@ mean(dsocial$yearsedu, na.rm = T)
 mean(dvolunteer$yearsedu, na.rm = T)
 mean(dhelp$yearsedu, na.rm = T)
 
-## "Zwischenoutput" --------------------------------------------------------------
+##  8.2 for Latex -----------------------------------------------
 # Please comment out the pair of i and j which an output should be created for:
 # i <- dculture
 # j <- "culture"
 
-# <- dcinema
+# i <- dcinema
 # j<- "cinema"
 
 # i <- dsports 
@@ -305,7 +304,16 @@ mean(dhelp$yearsedu, na.rm = T)
 
 i <- dhelp
 j <- "help"
-stargazer(data = as.data.frame(i[c(j,"age", "married", "needcare")]), 
+stargazer(data = as.data.frame(i[c(j, "EP", 
+                                   "UE", 
+                                   "OLF", 
+                                   "UEPC", 
+                                   "UEO", 
+                                   "age", 
+                                   "yearsedu",
+                                   # Work disability
+                                   "married", 
+                                   "needcare")]), 
           type="latex", summary = TRUE, 
           title = paste("Summary Statistics for \\textbf{", j, "}"),
           digits = 3, median = TRUE,  
@@ -313,7 +321,24 @@ stargazer(data = as.data.frame(i[c(j,"age", "married", "needcare")]),
           summary.stat = c("Mean", "Sd"), 
           notes.align = "l",
           header = FALSE,
+          covariate.labels = c(j,
+                               "Employed", 
+                               "Unemployed", 
+                               "Out of labour force (OLF)", 
+                               "Plant closure unemployed", 
+                               "Other unemployed", 
+                               "Age (in years)", 
+                               "Years of education", 
+                               # "Work disability", 
+                               "Married", 
+                               # "Number of children: 0", 
+                               # "Number of children: 1", 
+                               # "Number of children: 2", 
+                               # "Number of children: 3$+$", 
+                               #"Shock: Spouse died", 
+                               #"Shock: Child born", 
+                               #"Shock: Divorce or separated West Germany", 
+                               "Person needing care in HH"),
           notes = c(paste("N:", nrow(i)), paste("Individuals:", length(unique(i$pid)))))
-
 
 

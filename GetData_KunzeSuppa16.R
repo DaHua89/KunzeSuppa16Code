@@ -55,7 +55,7 @@ lapply(libraries, library, quietly = TRUE, character.only = TRUE)
 # 5) OTHER UNEMPLOYED (UEO): derived as UNEMPLOYED - PLANT CLOSER UNEMPLOYED
 # 6) AGE: 'gebjahr' - 'syear', whereas 'gebjahr' (ppath dataset; https://paneldata.org/soep-core/data/ppath/gebjahr)
 # 7) YEARS OF EDUCATION: d1110992, d1110994, d1110996, d1110997, d1110901, d1110905, d1110907, d1110909, d1110911
-# 8) WORK DISABILITY:
+# 8) WORK disabled: ip7802, ip7802, mp7702, np8102, pp9702, rp9702, vp10502, xp9902, zp9602, bbp10102
 # 9) MARRIED:  pgfamstd (pgen dataset; https://paneldata.org/soep-is/data/pgen/pgfamstd)
 # 10) NUMBER OF CHILDREN: d11107 (pequiv dataset; https://paneldata.org/soep-core/data/pequiv/d11107)
 # 11) SHOCK SPOUSE DIED: pld0146 (pl dataset https://paneldata.org/soep-core/data/pl/pld0146)
@@ -63,7 +63,6 @@ lapply(libraries, library, quietly = TRUE, character.only = TRUE)
 # 13) SHOCK DIVORCE OR SEPERATED:
 # 14) WEST GERMANY: l11102 (pequiv dataset; https://paneldata.org/soep-is/data/pgen/pgfamstd)
 # 15) PERSON NEEDING CARE IN HH: hlf0291 (hl dataset; https://paneldata.org/soep-core/data/hl/hlf0291)
-
 
 ## 2.3 Others ------------------------------------------------------------------
 ## Identifier/Merging keys
@@ -108,32 +107,57 @@ PEQUIV <- read_dta(file = file.path('pequiv.dta'),
                                   "l11102", # West Germany (14)
                                   "d11107" )) # Number of children (10)
 
-
-
 # (7) Years of Eductaion:
 ed1 = read_dta(file = file.path(raw_path, "ipequiv.dta"), col_select = c("pid", 'cid','hid', 'syear',   
-                                                                         "d1110992" ))
+                                                                         "d1110992" )) # 1992
 ed2 = read_dta(file = file.path(raw_path,"kpequiv.dta"), col_select = c("pid", 'cid','hid', 'syear',   
-                                                                        "d1110994" ))
+                                                                        "d1110994" )) # 1994
 ed3 = read_dta(file = file.path(raw_path,"mpequiv.dta"), col_select = c("pid", 'cid','hid', 'syear',   
-                                                                        "d1110996" ))
+                                                                        "d1110996" )) # 1996
 ed4 = read_dta(file = file.path(raw_path,"npequiv.dta"), col_select = c("pid", 'cid','hid', 'syear',   
-                                                                        "d1110997" ))
-ed5 = read_dta(file = file.path(raw_path,"rpequiv.dta"), col_select = c("pid", 'cid','hid', 'syear',   
-                                                                        "d1110901" ))
-ed6 = read_dta(file = file.path(raw_path,"vpequiv.dta"), col_select = c("pid", 'cid','hid', 'syear',   
-                                                                        "d1110905" ))
-ed7 = read_dta(file = file.path(raw_path,"xpequiv.dta"), col_select = c("pid", 'cid','hid', 'syear',   
-                                                                        "d1110907" ))
-ed8 = read_dta(file = file.path(raw_path,"zpequiv.dta"), col_select = c("pid", 'cid','hid', 'syear',   
-                                                                        "d1110909" ))
-ed9 = read_dta(file = file.path(raw_path,"bbpequiv.dta"), col_select = c("pid", 'cid','hid', 'syear',   
-                                                                         "d1110911" ))
+                                                                        "d1110997" )) # 1997
+ed5 = read_dta(file = file.path(raw_path,"ppequiv.dta"), col_select = c("pid", 'cid','hid', 'syear',   
+                                                                        "d1110999" )) # 1999
+ed6 = read_dta(file = file.path(raw_path,"rpequiv.dta"), col_select = c("pid", 'cid','hid', 'syear',   
+                                                                        "d1110901" )) # 2001
+ed7 = read_dta(file = file.path(raw_path,"vpequiv.dta"), col_select = c("pid", 'cid','hid', 'syear',   
+                                                                        "d1110905" )) # 2005
+ed8 = read_dta(file = file.path(raw_path,"xpequiv.dta"), col_select = c("pid", 'cid','hid', 'syear',   
+                                                                        "d1110907" )) # 2007
+ed9 = read_dta(file = file.path(raw_path,"zpequiv.dta"), col_select = c("pid", 'cid','hid', 'syear',   
+                                                                        "d1110909" )) # 2009
+ed10 = read_dta(file = file.path(raw_path,"bbpequiv.dta"), col_select = c("pid", 'cid','hid', 'syear',   
+                                                                         "d1110911" )) # 201
+colnames(ed1) = colnames(ed2) = colnames(ed3) = colnames(ed4) = colnames(ed5) = colnames(ed6) = colnames(ed7) = colnames(ed8) = colnames(ed9) = colnames(ed10)
+EDU =  rbind(ed1,ed2,ed3,ed4,ed5,ed6,ed7,ed8,ed9, ed10)
+rm(ed1, ed2, ed3, ed4, ed5, ed6, ed7, ed8, ed9, ed10)
 
-colnames(ed1) = colnames(ed2) = colnames(ed3) = colnames(ed4) = colnames(ed5) = colnames(ed6) = colnames(ed7) = colnames(ed8) = colnames(ed9)
+# (8) Work Disability:
+dis1 = read_dta(file = file.path(raw_path,"ip.dta"), col_select = c("pid", 'cid','hid', 'syear',   
+                                                                    "ip7802" )) # 1992
+dis2 = read_dta(file = file.path(raw_path,"kp.dta"), col_select = c("pid", 'cid','hid', 'syear',   
+                                                                   "kp8402" )) # 1994
+dis3 = read_dta(file = file.path(raw_path,"mp.dta"), col_select = c("pid", 'cid','hid', 'syear',   
+                                                                   "mp7702" )) # 1996
+dis4 = read_dta(file = file.path(raw_path,"np.dta"), col_select = c("pid", 'cid','hid', 'syear',   
+                                                                   "np8102" )) # 1997
+dis5 = read_dta(file = file.path(raw_path,"pp.dta"), col_select = c("pid", 'cid','hid', 'syear',   
+                                                                   "pp9702" )) # 1999
+dis6 = read_dta(file = file.path(raw_path,"rp.dta"), col_select = c("pid", 'cid','hid', 'syear',   
+                                                                   "rp9702" )) # 2001
+dis7 = read_dta(file = file.path(raw_path,"vp.dta"), col_select = c("pid", 'cid','hid', 'syear',   
+                                                                   "vp10502" )) # 2005
+dis8 = read_dta(file = file.path(raw_path,"xp.dta"), col_select = c("pid", 'cid','hid', 'syear',   
+                                                                   "xp9902" )) # 2007
+dis9 = read_dta(file = file.path(raw_path,"zp.dta"), col_select = c("pid", 'cid','hid', 'syear',   
+                                                                   "zp9602" )) # 2009
+dis10 = read_dta(file = file.path(raw_path,"bbp.dta"), col_select = c("pid", 'cid','hid', 'syear',   
+                                                                   "bbp10102" )) # 2011
+colnames(dis1) = colnames(dis2) = colnames(dis3) = colnames(dis4) = colnames(dis5) = colnames(dis6) = colnames(dis7) = colnames(dis8) = colnames(dis9) = colnames(dis10)   
+DIS =  rbind(dis1, dis2, dis3, dis4, dis5, dis6, dis7, dis8, dis9, dis10)
+rm(dis1, dis2, dis3, dis4, dis5, dis6, dis7, dis8, dis9, dis10)
 
-EDU =  rbind(ed1,ed2,ed3,ed4,ed5,ed6,ed7,ed8,ed9)
-rm(ed1, ed2, ed3, ed4, ed5, ed6, ed7, ed8, ed9)
+
 
 # 4 Load sub- functions -------------------------------------------------------
 # The renaming() sub-function takes a dataframe as its only argument. 
@@ -155,8 +179,8 @@ renaming <- function(df){
                   OLF = 'pglfs',
                   UEPC = 'plb0304_h', 
                   child = "d11107", 
-                  shock_partner = "pld0146") 
-                  
+                  shock_partner = "pld0146", 
+                  disabled ="bbp10102") 
   
   df <- df %>%  dplyr::rename(any_of(var_names))
   return(df)
@@ -218,18 +242,70 @@ recoding <- function(df){
                                                     child <= 2  ~ 0),
                              shock_partner = case_when(shock_partner ==1 ~ 1, # Shock: Spouse died(1)
                                                        shock_partner == -2 ~ 0), # Shock: Spouse did not die (= does not apply) (-2)
-                             shock_partner = replace(shock_partner, shock_partner %in% c(-1, -3:-8), NA)) %>% # define rest of negative values as missing values 
-
+                             shock_partner = replace(shock_partner, shock_partner %in% c(-1, -3:-8), NA),  # define rest of negative values as missing values 
+                             disabled = replace(disabled, disabled %in% c(-1, -3:-8), NA), 
+                             disabled_degree = replace(disabled, disabled == -2, 0), 
+                             disabled = replace(disabled_degree, disabled_degree > 0, 1)) %>%
     mutate(UEPC = as.numeric(EP %in% c(5) & UEPC %in% c(1)), # UEPC variable construction
            EP = as.numeric(EP %in% c(1, 2, 3, 4, 6)), # EP variable construction
            OLF = as.numeric(OLF %in% c(1:5, 7:10, 13))) %>% # OLF variable construction
     mutate(UE = 1-OLF-EP) %>% # UE variable construction
     mutate(UEO = UE-UEPC) %>% # UEO variable construction
     mutate(UEO = replace(UEO, OLF==1, 0)) # To correct for individuals who are OLF and also lost their job because of plant closure
-  
   return(df)
-  
 }
+
+# The rsummstat() sub-function takes a number as its only argument. 
+# It returns a summary statistic as LaTeX code. 
+# For more information, see 8.2 of this document.
+summstat <- function(number) { 
+  i <- c("dculture", "dcinema","dsports", "dsocial", "dvolunteer", "dhelp")
+  j <- c("culture",  "cinema","sports", "social", "volunteer", "help")
+  stargazer(data = as.data.frame(get(i[number])[c(j[number], "EP", 
+                                                  "UE", 
+                                                  "OLF", 
+                                                  "UEPC", 
+                                                  "UEO", 
+                                                  "age", 
+                                                  "yearsedu",
+                                                  "disabled",  
+                                                  "married", 
+                                                  "child0", 
+                                                  "child1",
+                                                  "child2",
+                                                  "child3plus",
+                                                  "shock_partner",
+                                                  "west",
+                                                  "needcare")]), 
+            type="latex", summary = TRUE, 
+            title = paste("Summary Statistics for \\textbf{", j[number], "}"),
+            digits = 3, median = TRUE,  
+            omit.summary.stat = c("N","p25", "p75", "Min", "Max", "Median"), 
+            summary.stat = c("Mean", "Sd"), 
+            notes.align = "l",
+            header = FALSE,
+            covariate.labels = c(j[number],
+                                 "Employed", 
+                                 "Unemployed", 
+                                 "Out of labour force (OLF)", 
+                                 "Plant closure unemployed", 
+                                 "Other unemployed", 
+                                 "Age (in years)", 
+                                 "Years of education", 
+                                 "Work disability", 
+                                 "Married", 
+                                 "Number of children: 0", 
+                                 "Number of children: 1", 
+                                 "Number of children: 2", 
+                                 "Number of children: 3$+$", 
+                                 "Shock: Spouse died", 
+                                 #"Shock: Child born", 
+                                 #"Shock: Divorce or separated", 
+                                 "West Germany", 
+                                 "Person needing care in HH"),
+            notes = c(paste("N:", nrow(get(i[number]))), paste("Individuals:", length(unique(get(i[number])$pid)))))
+}
+
 
 
 # 5 Merge to universal dataset ------------------------------------------------
@@ -237,6 +313,7 @@ universal <- PPATHL%>%
   left_join(PL) %>%
   left_join(PGEN) %>%
   left_join(EDU) %>%
+  left_join(DIS) %>%
   left_join(HL) %>%
   left_join(PEQUIV) %>%
   arrange(pid, syear, hid) # order
@@ -253,6 +330,7 @@ data_all <- universal %>%
          l11102 %in% c(1,2), # (2) Filter: Place of living is Germany (either West:1 or East:2)  
          syear %in% c(1991:2011)) #(3) Filter: data from 1991 to 2011 (without 1999 and 2000)
         #syear %in% c(1991:1998, 2001:2011)) 
+
 
 
 # 7 Data cleaning -------------------------------------------------------------
@@ -292,7 +370,8 @@ mean(dculture$child1)
 mean(dculture$child2)
 mean(dculture$child3plus)
 mean(dculture$shock_partner,na.rm = TRUE)
-
+mean(dculture$disabled,na.rm = TRUE)
+mean(dculture$disabled_degree,na.rm = TRUE)
 
 mean(dcinema$cinema)
 mean(dcinema$married, na.rm = TRUE)
@@ -321,67 +400,14 @@ mean(dvolunteer$yearsedu, na.rm = T)
 mean(dhelp$yearsedu, na.rm = T)
 
 ##  8.2 for Latex -----------------------------------------------
-# Please comment out the pair of i and j which an output should be created for:
- i <- dculture
- j <- "culture"
-
-# i <- dcinema
-# j<- "cinema"
-
-# i <- dsports 
-# j <- "sports"
-
-# i <- dsocial
-# j <- "social"
-
-# i <- dvolunteer
-# j <- "volunteer"
-
-# i <- dhelp
-# j <- "help"
-stargazer(data = as.data.frame(i[c(j, "EP", 
-                                   "UE", 
-                                   "OLF", 
-                                   "UEPC", 
-                                   "UEO", 
-                                   "age", 
-                                   "yearsedu",
-                                   # Work disability
-                                   "married", 
-                                   "child0", 
-                                   "child1",
-                                   "child2",
-                                   "child3plus",
-                                   "shock_partner",
-                                   "west",
-                                   "needcare")]), 
-          type="latex", summary = TRUE, 
-          title = paste("Summary Statistics for \\textbf{", j, "}"),
-          digits = 3, median = TRUE,  
-          omit.summary.stat = c("N","p25", "p75", "Min", "Max", "Median"), 
-          summary.stat = c("Mean", "Sd"), 
-          notes.align = "l",
-          header = FALSE,
-          covariate.labels = c(j,
-                               "Employed", 
-                               "Unemployed", 
-                               "Out of labour force (OLF)", 
-                               "Plant closure unemployed", 
-                               "Other unemployed", 
-                               "Age (in years)", 
-                               "Years of education", 
-                               # "Work disability", 
-                               "Married", 
-                               "Number of children: 0", 
-                               "Number of children: 1", 
-                               "Number of children: 2", 
-                               "Number of children: 3$+$", 
-                               "Shock: Spouse died", 
-                               #"Shock: Child born", 
-                               #"Shock: Divorce or separated", 
-                               "West Germany", 
-                               "Person needing care in HH"),
-          notes = c(paste("N:", nrow(i)), paste("Individuals:", length(unique(i$pid)))))
+# Please choose a number: 
+# 1:= culture
+# 2:= cinema
+# 3:= sports
+# 4:= social
+# 5:= volunteer
+# 6:= help
+summstat(6)
 
 
 

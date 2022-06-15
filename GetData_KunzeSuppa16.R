@@ -57,8 +57,8 @@ lapply(libraries, library, quietly = TRUE, character.only = TRUE)
 # 7) YEARS OF EDUCATION: d1110992, d1110994, d1110996, d1110997, d1110901, d1110905, d1110907, d1110909, d1110911
 # 8) WORK DISABILITY:
 # 9) MARRIED:  pgfamstd (pgen dataset; https://paneldata.org/soep-is/data/pgen/pgfamstd)
-# 10) NUMBER OF CHILDREN: 
-# 11) SHOCK SPOUSE DIED: 
+# 10) NUMBER OF CHILDREN: d11107 (pequiv dataset; https://paneldata.org/soep-core/data/pequiv/d11107)
+# 11) SHOCK SPOUSE DIED: pld0146 (pl dataset https://paneldata.org/soep-core/data/pl/pld0146)
 # 12) SHOCK CHILD BORN: 
 # 13) SHOCK DIVORCE OR SEPERATED:
 # 14) WEST GERMANY: l11102 (pequiv dataset; https://paneldata.org/soep-is/data/pgen/pgfamstd)
@@ -90,7 +90,8 @@ PL <- read_dta(file = file.path('pl.dta'),
                               "pli0094_h", # social (d)
                               "pli0095_h", # help (e)
                               "pli0096_h", # volunteer (f)
-                              'plb0304_h')) # UEPC (4)
+                              'plb0304_h', # UEPC (4)
+                              "pld0146")) # Shock: Spouse died (11)
 
 PGEN <- read_dta(file = file.path('pgen.dta'), 
                  col_select = c('pid', 'cid','hid', 'syear',   
@@ -104,7 +105,8 @@ HL <- read_dta(file = file.path('hl.dta'),
 
 PEQUIV <- read_dta(file = file.path('pequiv.dta'), 
                    col_select = c('pid','cid','hid', 'syear',   
-                                  "l11102")) # West Germany (14)
+                                  "l11102", # West Germany (14)
+                                  "d11107" )) # Number of children (10)
 
 
 
@@ -151,7 +153,11 @@ renaming <- function(df){
                   needcare = "hlf0291",
                   EP = 'pgemplst',
                   OLF = 'pglfs',
-                  UEPC = 'plb0304_h') 
+                  UEPC = 'plb0304_h', 
+                  child = "d11107", 
+                  shock_partner = "pld0146") 
+                  
+  
   df <- df %>%  dplyr::rename(any_of(var_names))
   return(df)
 }
@@ -198,12 +204,22 @@ recoding <- function(df){
                              yearsedu = replace(yearsedu, yearsedu <0, NA), # define negative values as missing values 
                              needcare = replace(needcare, needcare <0, NA), # define negative values as missing values 
                              needcare = replace(needcare, needcare>1, 0),  # Yes(1); Otherwise (0)
-                             west = replace(west, west==2, 0)) %>% # West(1); East(0)
-    #children = replace(children, children <0, NA), 
-    #children0 = children ==0, 
-    #children1 = children ==1, 
-    #children2 = children == 2, 
-    #children3plus = children > 2)
+                             west = replace(west, west==2, 0), # West(1); East(0)
+                             child = replace(child, child<0, NA), # define negative values as missing values 
+                             child0 = case_when(child == 0 ~ 1, 
+                                                child > 0 ~ 0), 
+                             child1 =case_when(child == 1 ~ 1, 
+                                               child > 1  ~ 0, 
+                                               child < 1  ~ 0),  
+                             child2 = case_when(child == 2 ~ 1, 
+                                                child > 2  ~ 0, 
+                                                child < 2  ~ 0), 
+                             child3plus = case_when(child > 2 ~ 1, 
+                                                    child <= 2  ~ 0),
+                             shock_partner = case_when(shock_partner ==1 ~ 1, # Shock: Spouse died(1)
+                                                       shock_partner == -2 ~ 0), # Shock: Spouse did not die (= does not apply) (-2)
+                             shock_partner = replace(shock_partner, shock_partner %in% c(-1, -3:-8), NA)) %>% # define rest of negative values as missing values 
+
     mutate(UEPC = as.numeric(EP %in% c(5) & UEPC %in% c(1)), # UEPC variable construction
            EP = as.numeric(EP %in% c(1, 2, 3, 4, 6)), # EP variable construction
            OLF = as.numeric(OLF %in% c(1:5, 7:10, 13))) %>% # OLF variable construction
@@ -236,7 +252,7 @@ data_all <- universal %>%
   filter(age>=21, age<=64,   # (1) Filter: Age between 21 and 64
          l11102 %in% c(1,2), # (2) Filter: Place of living is Germany (either West:1 or East:2)  
          syear %in% c(1991:2011)) #(3) Filter: data from 1991 to 2011 (without 1999 and 2000)
-#syear %in% c(1991:1998, 2001:2011)) 
+        #syear %in% c(1991:1998, 2001:2011)) 
 
 
 # 7 Data cleaning -------------------------------------------------------------
@@ -270,7 +286,13 @@ mean(dculture$age)
 mean(dculture$married, na.rm = TRUE)
 mean(dculture$needcare, na.rm = TRUE)
 mean(dculture$west, na.rm = TRUE)
-sum(is.na(dculture$west))
+sum(is.na(dculture$child))
+mean(dculture$child0)
+mean(dculture$child1)
+mean(dculture$child2)
+mean(dculture$child3plus)
+mean(dculture$shock_partner,na.rm = TRUE)
+
 
 mean(dcinema$cinema)
 mean(dcinema$married, na.rm = TRUE)
@@ -300,8 +322,8 @@ mean(dhelp$yearsedu, na.rm = T)
 
 ##  8.2 for Latex -----------------------------------------------
 # Please comment out the pair of i and j which an output should be created for:
-# i <- dculture
-# j <- "culture"
+ i <- dculture
+ j <- "culture"
 
 # i <- dcinema
 # j<- "cinema"
@@ -315,8 +337,8 @@ mean(dhelp$yearsedu, na.rm = T)
 # i <- dvolunteer
 # j <- "volunteer"
 
-i <- dhelp
-j <- "help"
+# i <- dhelp
+# j <- "help"
 stargazer(data = as.data.frame(i[c(j, "EP", 
                                    "UE", 
                                    "OLF", 
@@ -326,6 +348,11 @@ stargazer(data = as.data.frame(i[c(j, "EP",
                                    "yearsedu",
                                    # Work disability
                                    "married", 
+                                   "child0", 
+                                   "child1",
+                                   "child2",
+                                   "child3plus",
+                                   "shock_partner",
                                    "west",
                                    "needcare")]), 
           type="latex", summary = TRUE, 
@@ -345,11 +372,11 @@ stargazer(data = as.data.frame(i[c(j, "EP",
                                "Years of education", 
                                # "Work disability", 
                                "Married", 
-                               # "Number of children: 0", 
-                               # "Number of children: 1", 
-                               # "Number of children: 2", 
-                               # "Number of children: 3$+$", 
-                               #"Shock: Spouse died", 
+                               "Number of children: 0", 
+                               "Number of children: 1", 
+                               "Number of children: 2", 
+                               "Number of children: 3$+$", 
+                               "Shock: Spouse died", 
                                #"Shock: Child born", 
                                #"Shock: Divorce or separated", 
                                "West Germany", 

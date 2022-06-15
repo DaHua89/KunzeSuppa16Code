@@ -24,7 +24,7 @@ setwd("~/Downloads/Stata/") # Isabell
 raw_path <- "raw"
 # install & load packages
 libraries = c("haven", "dplyr", "labelled", "tidyr", "ggplot2", "Hmisc", 
-              "stringi", "stargazer", "lubridate", "todor")
+              "stringi", "stargazer", "lubridate", "todor", "stringr")
 lapply(libraries, function(x) if (!(x %in% installed.packages())) 
 { install.packages(x) })
 lapply(libraries, library, quietly = TRUE, character.only = TRUE)
@@ -93,33 +93,33 @@ PL <- read_dta(file = file.path('pl.dta'),
                               'plb0304_h')) # UEPC (4)
 
 PGEN <- read_dta(file = file.path('pgen.dta'), 
-                   col_select = c('pid', 'cid','hid', 'syear',   
-                                  "pgfamstd", # married (9) 
-                                  'pgemplst', # EP (1)
-                                  'pglfs')) # OLF (3)    
+                 col_select = c('pid', 'cid','hid', 'syear',   
+                                "pgfamstd", # married (9) 
+                                'pgemplst', # EP (1)
+                                'pglfs')) # OLF (3)    
 
 HL <- read_dta(file = file.path('hl.dta'), 
-                 col_select = c('cid','hid', 'syear',   
-                                "hlf0291" ))  # person needing care in hh (15)
+               col_select = c('cid','hid', 'syear',   
+                              "hlf0291" ))  # person needing care in hh (15)
 
 ed1 = read_dta(file = file.path(raw_path, "ipequiv.dta"), col_select = c("pid", 'cid','hid', 'syear',   
-                                                              "d1110992" ))
+                                                                         "d1110992" ))
 ed2 = read_dta(file = file.path(raw_path,"kpequiv.dta"), col_select = c("pid", 'cid','hid', 'syear',   
-                                                               "d1110994" ))
+                                                                        "d1110994" ))
 ed3 = read_dta(file = file.path(raw_path,"mpequiv.dta"), col_select = c("pid", 'cid','hid', 'syear',   
-                                                             "d1110996" ))
+                                                                        "d1110996" ))
 ed4 = read_dta(file = file.path(raw_path,"npequiv.dta"), col_select = c("pid", 'cid','hid', 'syear',   
-                                                              "d1110997" ))
+                                                                        "d1110997" ))
 ed5 = read_dta(file = file.path(raw_path,"rpequiv.dta"), col_select = c("pid", 'cid','hid', 'syear',   
-                                                               "d1110901" ))
+                                                                        "d1110901" ))
 ed6 = read_dta(file = file.path(raw_path,"vpequiv.dta"), col_select = c("pid", 'cid','hid', 'syear',   
-                                                               "d1110905" ))
+                                                                        "d1110905" ))
 ed7 = read_dta(file = file.path(raw_path,"xpequiv.dta"), col_select = c("pid", 'cid','hid', 'syear',   
-                                                               "d1110907" ))
+                                                                        "d1110907" ))
 ed8 = read_dta(file = file.path(raw_path,"zpequiv.dta"), col_select = c("pid", 'cid','hid', 'syear',   
-                                                               "d1110909" ))
+                                                                        "d1110909" ))
 ed9 = read_dta(file = file.path(raw_path,"bbpequiv.dta"), col_select = c("pid", 'cid','hid', 'syear',   
-                                                                "d1110911" ))
+                                                                         "d1110911" ))
 
 colnames(ed1) = colnames(ed2) = colnames(ed3) = colnames(ed4) = colnames(ed5) = colnames(ed6) = colnames(ed7) = colnames(ed8) = colnames(ed9)
 
@@ -145,9 +145,7 @@ renaming <- function(df){
                   EP = 'pgemplst',
                   OLF = 'pglfs',
                   UEPC = 'plb0304_h') 
-
-                  # children = ""
-  df <- df %>% rename(any_of(var_names))
+  df <- df %>%  dplyr::rename(any_of(var_names))
   return(df)
 }
 
@@ -156,7 +154,7 @@ renaming <- function(df){
 # It requires that the renaming() subfunction has been called on the data frame 
 # before it is used!!! The function returns a modified dataframe. 
 labeling <- function(df){
-var_labels <- c(culture =  "1:=never, 2:=less frequently, 3:=monthly, 4:= weekly", 
+  var_labels <- c(culture =  "1:=never, 2:=less frequently, 3:=monthly, 4:= weekly", 
                   cinema = "1:=never, 2:=less frequently, 3:=monthly, 4:= weekly", 
                   sports = "1:=never, 2:=less frequently, 3:=monthly, 4:= weekly", 
                   social = "1:=never, 2:=less frequently, 3:=monthly, 4:= weekly", 
@@ -176,20 +174,23 @@ var_labels <- c(culture =  "1:=never, 2:=less frequently, 3:=monthly, 4:= weekly
 # defines negatives values as missing values. 
 # The function returns a modified dataframe. 
 recoding <- function(df){
-  df <- df %>% 
-    
+  df_main <- df %>% filter(syear %in% c(1992, 1994, 1996,   
+                                        1997, 1999, 2001, 2005, 
+                                        2007, 2009, 2011)) %>%
     # Modifications on our 6 main variables 
     mutate_at(c("culture", "cinema", "sports", "social", "help", "volunteer"),
-                         funs(recode(., '2'=4, '3'=3, '4'=2, '5'=1))) %>% # recode all variables' (.) values, whereas 2 becomes 4, 4 becomes 2 and 5 becomes 1 
+              funs(recode(., '2'=4, '3'=3, '4'=2, '5'=1))) %>% # recode all variables' (.) values, whereas 2 becomes 4, 4 becomes 2 and 5 becomes 1 
     mutate_at(c("culture", "cinema", "sports", "social", "help", "volunteer"),
-              funs(ifelse(.<0, NA, .))) %>% # recodes all variables (.) to NA, if they take values below zero (.<0)
-    
-    # Modifications on our regressors 
-    mutate(married = replace(married, married>1, 0),  # Yes(1); Otherwise (0)
-           married = replace(married, married < 0, NA), # define negative values as missing values 
-           yearsedu = replace(yearsedu, yearsedu <0, NA), # define negative values as missing values 
-           needcare = replace(needcare, needcare <0, NA), # define negative values as missing values 
-           needcare = replace(needcare, needcare>1, 0)) %>% # Yes(1); Otherwise (0)
+              funs(ifelse(.<0, NA, .)))  # recodes all variables (.) to NA, if they take values below zero (.<0)
+  df <- df %>% select(!c("culture", "cinema", "sports", "social", "help", "volunteer")) %>% 
+    left_join(df_main) 
+  
+  # Modifications on our regressors 
+  df <- df %>% dplyr::mutate(married = replace(married, married>1, 0),  # Yes(1); Otherwise (0)
+                             married = replace(married, married < 0, NA), # define negative values as missing values 
+                             yearsedu = replace(yearsedu, yearsedu <0, NA), # define negative values as missing values 
+                             needcare = replace(needcare, needcare <0, NA), # define negative values as missing values 
+                             needcare = replace(needcare, needcare>1, 0)) %>% # Yes(1); Otherwise (0)
     #children = replace(children, children <0, NA), 
     #children0 = children ==0, 
     #children1 = children ==1, 
@@ -197,7 +198,7 @@ recoding <- function(df){
     #children3plus = children > 2)
     mutate(UEPC = as.numeric(EP %in% c(5) & UEPC %in% c(1)), # UEPC variable construction
            EP = as.numeric(EP %in% c(1, 2, 3, 4, 6)), # EP variable construction
-         OLF = as.numeric(OLF %in% c(1:5, 7:10, 13))) %>% # OLF variable construction
+           OLF = as.numeric(OLF %in% c(1:5, 7:10, 13))) %>% # OLF variable construction
     mutate(UE = 1-OLF-EP) %>% # UE variable construction
     mutate(UEO = UE-UEPC) %>% # UEO variable construction
     mutate(UEO = replace(UEO, OLF==1, 0)) # To correct for individuals who are OLF and also lost their job because of plant closure
@@ -225,11 +226,8 @@ data_all <- universal %>%
           age = replace (age, age<0, NA)) %>%  # exclude values where syear > gebjahr 
   filter(age>=21, age<=64,   # (1) Filter: Age between 21 and 64
          #l11102 %in% c(1,2), # (2) Filter: Place of living is Germany (either West:1 or East:2)  
-         syear %in% c(1991:1998, 2001:2011), # (3) Filter: data from 1991 to 2011 (without 1999 and 2000)
-         syear %in% c(1992, 1994, 1996,    # (4) Include only the waves as stated on p.218, Table1 
-                        1997, 2001, 2005, 
-                        2007, 2009, 2011))
-
+         syear %in% c(1991:2011)) #(3) Filter: data from 1991 to 2011 (without 1999 and 2000)
+#syear %in% c(1991:1998, 2001:2011)) 
 
 
 # 7 Data cleaning -------------------------------------------------------------
@@ -245,17 +243,20 @@ for (i in 1:length(main_vars)){
   currentvar <- main_vars[i] # current main variable (e.g main_vars[1] = "culture", main_vars[2] = "cinema" ...)
   allothermainvars <- main_vars[-(which(main_vars == currentvar))] # all other main variables except the current one 
   df_crop <- data_all %>% 
-    select(!allothermainvars) %>%  # exclude all other main variables (e.g. for dataset "culture" exclude: "cinema", "sports", "social", "help" and "volunteer" )
-    drop_na(currentvar) # exclude all missing values of the current main variable 
+    select(!allothermainvars) %>%   # exclude all other main variables (e.g. for dataset "culture" exclude: "cinema", "sports", "social", "help" and "volunteer" )
+    drop_na(currentvar) %>% # exclude all missing values of the current main variable 
+    filter(!syear ==1999)
   datasets_mainvar[[i]] <- df_crop # add to list "datasets_mainvar"
   names(datasets_mainvar)[i]<- paste0("d",currentvar) # rename entry of list 
 }
 rm(df_crop, currentvar, allothermainvars ) # remove irrelevant variables from global console
 list2env( datasets_mainvar , .GlobalEnv ) # create 6 dataframes from list "datasets_mainvar"
 
+
+
 # 8 Summary Statistics ---------------------------------------------------------
 ## 8.1 first overview ----------------------------------------------------------
-mean(dculture$culture)
+mean(dculture$culture, na.rm = TRUE)
 mean(dculture$age)
 mean(dculture$married, na.rm = TRUE)
 mean(dculture$needcare, na.rm = TRUE)
@@ -346,34 +347,17 @@ stargazer(data = as.data.frame(i[c(j, "EP",
 
 # Figure3 - Versuch ------------------------------------------------------------
 
-# Please comment out the pair of n and d which an output should be created for:
-# d <- dculture
-# n <- "culture"
-
-# d <- dcinema
-# n <- "cinema"
-
-# d <- dsports 
-# n <- "sports"
-
-# d <- dsocial
-# n <- "social"
-
-# d <- dvolunteer
-# n <- "volunteer"
-
-d <- dhelp
-n <- "help"
-
+d <- data_all
 # For efficiency reasons, apply the following for-loop only on individuals(pid), which ...
 # (1) ... have at least one time the entry "UE==1".  Consequently excludes all indiviuals and 
 # their observations, if they are employed over the whole time period (UE==0 for all entries).
-pid_f1 <- d %>% arrange(pid, syear) %>% group_by(pid) %>%  filter(UE ==1)  %>% select(pid) %>% distinct() 
+pid_f1 <- d %>% arrange(pid, syear) %>% group_by(pid) %>%  filter(UE ==1 ) %>%
+  select(pid) %>% distinct() 
 # Save pid_f1 as vector
 pid_f1 <- as.vector(pid_f1$pid)
 # (2) ... have at least 8 entries that the times t=-4,t=-3, t=-2, t=-1, t=1, t=2, t=3, t=4 
 # can be denoted to. Consequently all individuals with less than 8 entries are excluded. 
-pid_f2 <- d %>% arrange(pid, syear) %>% group_by(pid) %>% count() %>% filter(n >8) %>% select(pid) %>% distinct() 
+pid_f2 <- d %>%  group_by(pid) %>% dplyr::count() %>% filter(n >8) %>% select(pid) %>% distinct() 
 # Save pid_f2 as vector
 pid_f2 <- as.vector(pid_f2$pid)
 
@@ -383,10 +367,11 @@ pid_select <- intersect(pid_f2, pid_f1)
 # Create empty dataframe "dfigure3" which is to be filled in the next loop 
 dfigure3 <- data.frame(matrix(ncol = 4, nrow = 0)) 
 for(i in 1:length(pid_select)){
+  #which(pid_select == "13802")
   pid_nr <- pid_select[i]
-  crop <- d  %>% select(pid, syear, EP, UE, OLF, n) %>% 
-    mutate(UE = 2*UE,  UE = UE + EP) %>% # recode UE variable (this line could be commented out)
-    #mutate(EP = (EP-1)*(-1)) %>% # recode EP variable (ask me, if you would like to know more)
+  crop <- d  %>% select(pid, syear, EP, UE, OLF, sports, culture, social, volunteer, cinema, help) %>% 
+    dplyr::mutate(UE = 2*UE, UE = UE + EP) %>% # recode UE variable (this line could be commented out)
+    #mutate(UE = (EP-1)*(-1)) %>% # recode EP variable (ask me, if you would like to know more)
     filter(pid == pid_nr)
   
   # recode NA in "UE" variable to value 9 
@@ -404,10 +389,10 @@ for(i in 1:length(pid_select)){
   #pattern <- "(?<=[1,2]{3})1(?=2{4})" # sss12222, whereas s:= 1 or 2
   #pattern <- "(?<=[1,2]{3})1(?=2{1}[1,2]{3})" # sss12sss, whereas s:= 1 or 2
   #pattern <- "(?<=1{3})1(?=2{1}[1,2]{3})" # 11112sss, whereas x:= 1 or 2 
-  #pattern <- "(?<=.{3})1(?=2{4})" # xxx12222, whereas x:= 1 or 2 or 0
-  pattern <- "(?<=.{3})1(?=2{1}.{3})" # xxx12xxx, whereas x:= 1 or 2 or 0
+  pattern <- "(?<=.{3})1(?=2{4})" # xxx12222, whereas x:= 1 or 2 or 0
+  #pattern <- "(?<=.{3})1(?=2{1}.{3})" # xxx12xxx, whereas x:= 1 or 2 or 0
   #pattern <- "(?<=1{3})1(?=2{1}.{3})" # 11112xxx, whereas x:= 1 or 2 or 0
-  #pattern <- "(?<=1{3})1(?=2{4})" # 111122222 
+  #pattern <- "(?<=1{3})1(?=2{4})" # 11112222
   # b) for original UE: 
   #pattern <- "(?<=.{3})0(?=1{4})" # xxx01111, whereas x:= 1 or 0
   #pattern <- "(?<=.{3})0(?=1{1}.{3})" # xxx01xxx, whereas x:= 1 or 0
@@ -436,6 +421,23 @@ for(i in 1:length(pid_select)){
   }
 }
 
+' 
+1991, 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
+-4,   -3,   -2,   -1    1,    2,    3,    4
+      -4,   -3,   -2,   -1    1,    2,    3,    4
+            -4,   -3,   -2,   -1    1,    2,    3,    4
+                  -4,   -3,   -2,   -1    1,    2,    3,    4
+                         -4,  -3,   -2,   -1    1,    2,    3,    4
+                              -4,   -3,   -2,   -1    1,    2,    3,    4
+                                    -4,   -3,   -2,   -1    1,    2,    3,    4
+                                          -4,   -3,   -2,   -1    1,    2,    3,    4
+                                                -4,   -3,   -2,   -1    1,    2,    3,    4
+                                                       -4,   -3,   -2,   -1    1,    2,    3,    4
+                                                             -4,   -3,   -2,   -1    1,    2,    3,    4
+                                                                   -4,   -3,   -2,   -1    1,    2,    3,    4
+                                                                         -4,   -3,   -2,   -1    1,    2,    3,    4
+                                                                               -4,   -3,   -2,   -1    1,    2,    3,    4
+'
 # In case the waves are expanded to include the waves c(1992, 1994, 1995, 1996, 1997, 1998,2001, 2003, 2005, 2007, 
 # 2008, 2009, 2011), then the next filter could also be added. It makes sure that the transition from 
 # employment to unemployment happens in the years 1996-1997 or 1997-1998. In both cases we have enough 
@@ -444,7 +446,39 @@ for(i in 1:length(pid_select)){
 # pid_select2 <- as.vector(# pid_select2$pid)
 # figure3 <- figure3 %>% filter(pid %in% # pid_select2) 
 
+
 # Plot the mean over time in time-to-event-plot:
+# (1) Plot them all together: 
+library(gridExtra) # Please DO NOT put into Initialization, as fuc
+n <- c("social", "help", "cinema", "culture", "volunteer", "sports")
+g <- lapply(1:6, function(j) {
+  if(n[j] %in% c("social", "help")){
+    ggplot(dfigure3, aes(x= time), y= get(n[j])) +
+      stat_summary(aes(y = get(n[j])  , group=1), fun=mean, colour="red", geom="line", group=1) + 
+      scale_x_continuous(breaks = c(-4,-3,-2,-1,0,1,2,3,4)) +
+      #coord_cartesian(ylim = c(1, 2.4)) + 
+      coord_cartesian(ylim = c(2, 3.4)) +
+      ylab(n[j]) + labs(title=paste(str_remove_all(pattern, "[\\(\\),<>=?]"),n[j]))
+  }else {
+    ggplot(dfigure3, aes(x= time), y= get(n[j])) +
+      stat_summary(aes(y = get(n[j])  , group=1), fun=mean, colour="red", geom="line", group=1) + 
+      scale_x_continuous(breaks = c(-4,-3,-2,-1,0,1,2,3,4)) +
+      coord_cartesian(ylim = c(1, 2.4)) + 
+      #coord_cartesian(ylim = c(2, 3.4)) +
+      ylab(n[j]) + labs(title=paste(str_remove_all(pattern, "[\\(\\),<>=?]"),n[j]))
+  }
+  
+})
+grid.arrange(grobs = g, ncol = 2)
+
+# (2) Plot them separately: 
+# Please comment out the pair of n and d which an output should be created for:
+n <- "culture"
+# n <- "cinema"
+# n <- "sports"
+# n <- "social"
+# n <- "volunteer"
+# n <- "help"
 i <- as.integer(unlist(dfigure3[which(names(dfigure3) == n)]))
 dfigure3 %>% ggplot(aes(x= time), y=  i) +
   stat_summary(aes(y = i, group=1), fun=mean, colour="red", geom="line", group=1) + 
@@ -452,6 +486,9 @@ dfigure3 %>% ggplot(aes(x= time), y=  i) +
   coord_cartesian(ylim = c(1, 2.4)) + # if social or help is plotted, please change this line with the next line
   # coord_cartesian(ylim = c(2, 3.4)) +
   ylab(n) + labs(title=str_remove_all(pattern, "[\\(\\),<>=?]"))
+
+
+
 
 
 

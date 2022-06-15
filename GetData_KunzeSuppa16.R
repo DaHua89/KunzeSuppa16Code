@@ -10,7 +10,7 @@
   Organization, 133, pp. 213-235, https://doi.org/10.1016/j.jebo.2016.11.012.
          
                                written by 
-                              (our names!)
+                              (our names)
 ' 
 
 

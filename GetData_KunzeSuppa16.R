@@ -463,7 +463,7 @@ for(i in 1:length(pid_select)){
 
 # Plot the mean over time in time-to-event-plot:
 # (1) Plot them all together: 
-library(gridExtra) # Please DO NOT put into Initialization, as fuc
+library(gridExtra) # Please DO NOT put into Initialization, as some functions of dplyr will be overwritten (e.g. mutate()) and lead to errors in the code.
 n <- c("social", "help", "cinema", "culture", "volunteer", "sports")
 g <- lapply(1:6, function(j) {
   if(n[j] %in% c("social", "help")){

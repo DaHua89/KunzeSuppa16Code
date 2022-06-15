@@ -61,7 +61,7 @@ lapply(libraries, library, quietly = TRUE, character.only = TRUE)
 # 11) SHOCK SPOUSE DIED: 
 # 12) SHOCK CHILD BORN: 
 # 13) SHOCK DIVORCE OR SEPERATED:
-# 14) WEST GERMANY: (NICHT: l11102 (pequiv)) 
+# 14) WEST GERMANY: l11102 (pequiv dataset; https://paneldata.org/soep-is/data/pgen/pgfamstd)
 # 15) PERSON NEEDING CARE IN HH: hlf0291 (hl dataset; https://paneldata.org/soep-core/data/hl/hlf0291)
 
 
@@ -102,6 +102,13 @@ HL <- read_dta(file = file.path('hl.dta'),
                col_select = c('cid','hid', 'syear',   
                               "hlf0291" ))  # person needing care in hh (15)
 
+PEQUIV <- read_dta(file = file.path('pequiv.dta'), 
+                   col_select = c('pid','cid','hid', 'syear',   
+                                  "l11102")) # West Germany (14)
+
+
+
+# (7) Years of Eductaion:
 ed1 = read_dta(file = file.path(raw_path, "ipequiv.dta"), col_select = c("pid", 'cid','hid', 'syear',   
                                                                          "d1110992" ))
 ed2 = read_dta(file = file.path(raw_path,"kpequiv.dta"), col_select = c("pid", 'cid','hid', 'syear',   
@@ -138,7 +145,7 @@ renaming <- function(df){
                   social = "pli0094_h", 
                   help = "pli0095_h", 
                   volunteer = "pli0096_h", 
-                  # west = "", 
+                  west = "l11102", 
                   married = "pgfamstd", 
                   yearsedu = "d1110911", 
                   needcare = "hlf0291",
@@ -190,7 +197,8 @@ recoding <- function(df){
                              married = replace(married, married < 0, NA), # define negative values as missing values 
                              yearsedu = replace(yearsedu, yearsedu <0, NA), # define negative values as missing values 
                              needcare = replace(needcare, needcare <0, NA), # define negative values as missing values 
-                             needcare = replace(needcare, needcare>1, 0)) %>% # Yes(1); Otherwise (0)
+                             needcare = replace(needcare, needcare>1, 0),  # Yes(1); Otherwise (0)
+                             west = replace(west, west==2, 0)) %>% # West(1); East(0)
     #children = replace(children, children <0, NA), 
     #children0 = children ==0, 
     #children1 = children ==1, 
@@ -212,8 +220,9 @@ recoding <- function(df){
 universal <- PPATHL%>% 
   left_join(PL) %>%
   left_join(PGEN) %>%
-  left_join(HL) %>%
   left_join(EDU) %>%
+  left_join(HL) %>%
+  left_join(PEQUIV) %>%
   arrange(pid, syear, hid) # order
 
 
@@ -225,7 +234,7 @@ data_all <- universal %>%
           age = case_when(!is.na(gebjahr) ~ syear - gebjahr), # define age variable as:= sampleyear(year) - year born(gebjahr)
           age = replace (age, age<0, NA)) %>%  # exclude values where syear > gebjahr 
   filter(age>=21, age<=64,   # (1) Filter: Age between 21 and 64
-         #l11102 %in% c(1,2), # (2) Filter: Place of living is Germany (either West:1 or East:2)  
+         l11102 %in% c(1,2), # (2) Filter: Place of living is Germany (either West:1 or East:2)  
          syear %in% c(1991:2011)) #(3) Filter: data from 1991 to 2011 (without 1999 and 2000)
 #syear %in% c(1991:1998, 2001:2011)) 
 
@@ -260,10 +269,13 @@ mean(dculture$culture, na.rm = TRUE)
 mean(dculture$age)
 mean(dculture$married, na.rm = TRUE)
 mean(dculture$needcare, na.rm = TRUE)
+mean(dculture$west, na.rm = TRUE)
+sum(is.na(dculture$west))
 
 mean(dcinema$cinema)
 mean(dcinema$married, na.rm = TRUE)
 mean(dcinema$needcare, na.rm = TRUE)
+mean(dcinema$west, na.rm = TRUE)
 
 mean(dsports$sports)
 mean(dsports$married, na.rm = TRUE)
@@ -314,6 +326,7 @@ stargazer(data = as.data.frame(i[c(j, "EP",
                                    "yearsedu",
                                    # Work disability
                                    "married", 
+                                   "west",
                                    "needcare")]), 
           type="latex", summary = TRUE, 
           title = paste("Summary Statistics for \\textbf{", j, "}"),
@@ -338,7 +351,8 @@ stargazer(data = as.data.frame(i[c(j, "EP",
                                # "Number of children: 3$+$", 
                                #"Shock: Spouse died", 
                                #"Shock: Child born", 
-                               #"Shock: Divorce or separated West Germany", 
+                               #"Shock: Divorce or separated", 
+                               "West Germany", 
                                "Person needing care in HH"),
           notes = c(paste("N:", nrow(i)), paste("Individuals:", length(unique(i$pid)))))
 

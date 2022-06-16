@@ -55,10 +55,11 @@ lapply(libraries, library, quietly = TRUE, character.only = TRUE)
 # 5) OTHER UNEMPLOYED (UEO): derived as UNEMPLOYED - PLANT CLOSER UNEMPLOYED
 # 6) AGE: 'gebjahr' - 'syear', whereas 'gebjahr' (ppath dataset; https://paneldata.org/soep-core/data/ppath/gebjahr)
 # 7) YEARS OF EDUCATION: d1110992, d1110994, d1110996, d1110997, d1110901, d1110905, d1110907, d1110909, d1110911
-# 8) WORK disabled: ip7802, ip7802, mp7702, np8102, pp9702, rp9702, vp10502, xp9902, zp9602, bbp10102
+# 8) WORK disabled: harmonized: ple0041 (pl dataset; https://paneldata.org/soep-core/data/pl/ple0041)
+#                   raw: ip7802, ip7802, mp7702, np8102, pp9702, rp9702, vp10502, xp9902, zp9602, bbp10102
 # 9) MARRIED:  pgfamstd (pgen dataset; https://paneldata.org/soep-is/data/pgen/pgfamstd)
 # 10) NUMBER OF CHILDREN: d11107 (pequiv dataset; https://paneldata.org/soep-core/data/pequiv/d11107)
-# 11) SHOCK SPOUSE DIED: pld0146 (pl dataset https://paneldata.org/soep-core/data/pl/pld0146)
+# 11) SHOCK SPOUSE DIED: pld0148 (pl dataset https://paneldata.org/soep-core/data/pl/pld0148)
 # 12) SHOCK CHILD BORN: 
 # 13) SHOCK DIVORCE OR SEPERATED:
 # 14) WEST GERMANY: l11102 (pequiv dataset; https://paneldata.org/soep-is/data/pgen/pgfamstd)
@@ -90,7 +91,14 @@ PL <- read_dta(file = file.path('pl.dta'),
                               "pli0095_h", # help (e)
                               "pli0096_h", # volunteer (f)
                               'plb0304_h', # UEPC (4)
-                              "pld0146")) # Shock: Spouse died (11)
+                              "ple0041"))  # Work Disability (harm) (8) 
+                              
+
+PL2 <- read_dta(file = file.path('pl.dta'), 
+                col_select = c('pid','cid', 'hid', 'syear',
+                               "pld0148")) # Month Spouse died in PREVIOUS YEAR (-> (11))
+PL2$syear <- PL2$syear - 1 # Make then-year to previous-year e.g. entries of year 1992 become 1991
+
 
 PGEN <- read_dta(file = file.path('pgen.dta'), 
                  col_select = c('pid', 'cid','hid', 'syear',   
@@ -132,7 +140,7 @@ colnames(ed1) = colnames(ed2) = colnames(ed3) = colnames(ed4) = colnames(ed5) = 
 EDU =  rbind(ed1,ed2,ed3,ed4,ed5,ed6,ed7,ed8,ed9, ed10)
 rm(ed1, ed2, ed3, ed4, ed5, ed6, ed7, ed8, ed9, ed10)
 
-# (8) Work Disability:
+# (8) Work Disability (raw)
 dis1 = read_dta(file = file.path(raw_path,"ip.dta"), col_select = c("pid", 'cid','hid', 'syear',   
                                                                     "ip7802" )) # 1992
 dis2 = read_dta(file = file.path(raw_path,"kp.dta"), col_select = c("pid", 'cid','hid', 'syear',   
@@ -179,8 +187,9 @@ renaming <- function(df){
                   OLF = 'pglfs',
                   UEPC = 'plb0304_h', 
                   child = "d11107", 
-                  shock_partner = "pld0146", 
-                  disabled ="bbp10102") 
+                  shock_partner = "pld0148", 
+                  disabled_raw ="bbp10102", 
+                  disabled_harm = "ple0041") 
   
   df <- df %>%  dplyr::rename(any_of(var_names))
   return(df)
@@ -240,12 +249,20 @@ recoding <- function(df){
                                                 child < 2  ~ 0), 
                              child3plus = case_when(child > 2 ~ 1, 
                                                     child <= 2  ~ 0),
-                             shock_partner = case_when(shock_partner ==1 ~ 1, # Shock: Spouse died(1)
-                                                       shock_partner == -2 ~ 0), # Shock: Spouse did not die (= does not apply) (-2)
-                             shock_partner = replace(shock_partner, shock_partner %in% c(-1, -3:-8), NA),  # define rest of negative values as missing values 
-                             disabled = replace(disabled, disabled %in% c(-1, -3:-8), NA), 
-                             disabled_degree = replace(disabled, disabled == -2, 0), 
-                             disabled = replace(disabled_degree, disabled_degree > 0, 1)) %>%
+                             
+                             shock_partner = case_when(shock_partner %in% c(1:12) ~ 1, 
+                                                       shock_partner == -2 ~ 0), 
+                             shock_partner = replace(shock_partner, shock_partner %in% c(-1, -3:-8), NA), 
+                             
+                             disabled_raw = replace(disabled_raw, disabled_raw %in% c(-1, -3:-8), NA), 
+                             disabled_raw_degree = replace(disabled_raw, disabled_raw == -2, 0), 
+                             disabled_raw = replace(disabled_raw_degree, disabled_raw_degree > 0, 1),
+                             
+                             disabled_harm = replace(disabled_harm, disabled_harm %in% c(-1, -3:-8), NA), 
+                             disabled_harm_degree = replace(disabled_harm, disabled_harm == -2, 0), 
+                             disabled_harm = replace(disabled_harm_degree, disabled_harm_degree > 0, 1)) %>%
+    
+    
     mutate(UEPC = as.numeric(EP %in% c(5) & UEPC %in% c(1)), # UEPC variable construction
            EP = as.numeric(EP %in% c(1, 2, 3, 4, 6)), # EP variable construction
            OLF = as.numeric(OLF %in% c(1:5, 7:10, 13))) %>% # OLF variable construction
@@ -268,7 +285,8 @@ summstat <- function(number) {
                                                   "UEO", 
                                                   "age", 
                                                   "yearsedu",
-                                                  "disabled",  
+                                                  "disabled_raw",  
+                                                  "disabled_harm",  
                                                   "married", 
                                                   "child0", 
                                                   "child1",
@@ -292,7 +310,8 @@ summstat <- function(number) {
                                  "Other unemployed", 
                                  "Age (in years)", 
                                  "Years of education", 
-                                 "Work disability", 
+                                 "Work disability (raw)", 
+                                 "Work disability (harm)",
                                  "Married", 
                                  "Number of children: 0", 
                                  "Number of children: 1", 
@@ -316,6 +335,7 @@ universal <- PPATHL%>%
   left_join(DIS) %>%
   left_join(HL) %>%
   left_join(PEQUIV) %>%
+  left_join(PL2) %>%
   arrange(pid, syear, hid) # order
 
 
@@ -370,8 +390,10 @@ mean(dculture$child1)
 mean(dculture$child2)
 mean(dculture$child3plus)
 mean(dculture$shock_partner,na.rm = TRUE)
-mean(dculture$disabled,na.rm = TRUE)
-mean(dculture$disabled_degree,na.rm = TRUE)
+mean(dculture$disabled_raw,na.rm = TRUE)
+mean(dculture$disabled_raw_degree,na.rm = TRUE)
+mean(dculture$disabled_harm,na.rm = TRUE)
+mean(dculture$disabled_harm_degree,na.rm = TRUE)
 
 mean(dcinema$cinema)
 mean(dcinema$married, na.rm = TRUE)

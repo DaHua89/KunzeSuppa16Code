@@ -60,7 +60,7 @@ lapply(libraries, library, quietly = TRUE, character.only = TRUE)
 # 9) MARRIED:  pgfamstd (pgen dataset; https://paneldata.org/soep-is/data/pgen/pgfamstd)
 # 10) NUMBER OF CHILDREN: d11107 (pequiv dataset; https://paneldata.org/soep-core/data/pequiv/d11107)
 # 11) SHOCK SPOUSE DIED: pld0148 (pl dataset https://paneldata.org/soep-core/data/pl/pld0148)
-# 12) SHOCK CHILD BORN: 
+# 12) SHOCK CHILD BORN:  pl/pld0154
 # 13) SHOCK DIVORCE OR SEPERATED:
 # 14) WEST GERMANY: l11102 (pequiv dataset; https://paneldata.org/soep-is/data/pgen/pgfamstd)
 # 15) PERSON NEEDING CARE IN HH: hlf0291 (hl dataset; https://paneldata.org/soep-core/data/hl/hlf0291)
@@ -165,6 +165,13 @@ colnames(dis1) = colnames(dis2) = colnames(dis3) = colnames(dis4) = colnames(dis
 DIS =  rbind(dis1, dis2, dis3, dis4, dis5, dis6, dis7, dis8, dis9, dis10)
 rm(dis1, dis2, dis3, dis4, dis5, dis6, dis7, dis8, dis9, dis10)
 
+# shock: child born
+
+CHILD = read_dta(file = file.path('pl.dta'), 
+                 col_select = c('pid','cid','hid', 'syear',   
+                                "pld0154"))
+
+CHILD$syear = CHILD$syear - 1
 
 
 # 4 Load sub- functions -------------------------------------------------------
@@ -189,7 +196,8 @@ renaming <- function(df){
                   child = "d11107", 
                   shock_partner = "pld0148", 
                   disabled_raw ="bbp10102", 
-                  disabled_harm = "ple0041") 
+                  disabled_harm = "ple0041",
+                  shock_child = "pld0154") 
   
   df <- df %>%  dplyr::rename(any_of(var_names))
   return(df)
@@ -254,6 +262,10 @@ recoding <- function(df){
                                                        shock_partner == -2 ~ 0), 
                              shock_partner = replace(shock_partner, shock_partner %in% c(-1, -3:-8), NA), 
                              
+                             shock_child = replace(shock_child, shock_child %in% c(1:12), 1),
+                             shock_child = replace(shock_child, shock_child %in% c(-1,-3:-8), NA),
+                             shock_child = replace(shock_child, shock_child %in% c(-2), 0),
+                             
                              disabled_raw = replace(disabled_raw, disabled_raw %in% c(-1, -3:-8), NA), 
                              disabled_raw_degree = replace(disabled_raw, disabled_raw == -2, 0), 
                              disabled_raw = replace(disabled_raw_degree, disabled_raw_degree > 0, 1),
@@ -293,6 +305,7 @@ summstat <- function(number) {
                                                   "child2",
                                                   "child3plus",
                                                   "shock_partner",
+                                                  "shock_child",
                                                   "west",
                                                   "needcare")]), 
             type="latex", summary = TRUE, 
@@ -318,7 +331,7 @@ summstat <- function(number) {
                                  "Number of children: 2", 
                                  "Number of children: 3$+$", 
                                  "Shock: Spouse died", 
-                                 #"Shock: Child born", 
+                                 "Shock: Child born", 
                                  #"Shock: Divorce or separated", 
                                  "West Germany", 
                                  "Person needing care in HH"),
@@ -336,6 +349,7 @@ universal <- PPATHL%>%
   left_join(HL) %>%
   left_join(PEQUIV) %>%
   left_join(PL2) %>%
+  left_join(CHILD) %>%
   arrange(pid, syear, hid) # order
 
 
@@ -420,6 +434,13 @@ mean(dsports$yearsedu, na.rm = T)
 mean(dsocial$yearsedu, na.rm = T)
 mean(dvolunteer$yearsedu, na.rm = T)
 mean(dhelp$yearsedu, na.rm = T)
+       
+mean(dculture$shock_child, na.rm = T)
+mean(dcinema$shock_child, na.rm = T)
+mean(dsports$shock_child, na.rm = T)
+mean(dsocial$shock_child, na.rm = T)
+mean(dvolunteer$shock_child, na.rm = T)
+mean(dhelp$shock_child, na.rm = T)
 
 ##  8.2 for Latex -----------------------------------------------
 # Please choose a number: 

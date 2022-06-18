@@ -24,7 +24,8 @@ setwd("~/Downloads/Stata/") # Isabell
 raw_path <- "raw"
 # install & load packages
 libraries = c("haven", "dplyr", "labelled", "tidyr", "ggplot2", "Hmisc", 
-              "stringi", "stargazer", "lubridate", "todor", "stringr")
+              "stringi", "stargazer", "lubridate", "todor", "stringr", "plm", 
+              "lmtest", "sandwich")
 lapply(libraries, function(x) if (!(x %in% installed.packages())) 
 { install.packages(x) })
 lapply(libraries, library, quietly = TRUE, character.only = TRUE)
@@ -60,8 +61,11 @@ lapply(libraries, library, quietly = TRUE, character.only = TRUE)
 # 9) MARRIED:  pgfamstd (pgen dataset; https://paneldata.org/soep-is/data/pgen/pgfamstd)
 # 10) NUMBER OF CHILDREN: d11107 (pequiv dataset; https://paneldata.org/soep-core/data/pequiv/d11107)
 # 11) SHOCK SPOUSE DIED: pld0148 (pl dataset https://paneldata.org/soep-core/data/pl/pld0148)
-# 12) SHOCK CHILD BORN:  pl/pld0154
-# 13) SHOCK DIVORCE OR SEPERATED:
+# 12) SHOCK CHILD BORN:  pld0154 (pl dataset https://paneldata.org/soep-core/data/pl/pld0154)
+# 13) SHOCK DIVORCED OR SEPARATED:  harmonized: separated: pld0145(pl dataset https://paneldata.org/soep-core/data/pl/pld0145) 
+#                                               divorced: pld0142(pl dataset https://paneldata.org/soep-core/data/pl/pld0142
+#                                   raw:        separated: jp10307, lp10307, np11507, op12107, qp14211, sp13311, wp14114, yp15417, bap15918, bcp15021
+#                                               divorced: jp10305, lp10305, np11505, op12105, qp14208, sp13308, wp14117, yp15420, bap15921, bcp15024
 # 14) WEST GERMANY: l11102 (pequiv dataset; https://paneldata.org/soep-is/data/pgen/pgfamstd)
 # 15) PERSON NEEDING CARE IN HH: hlf0291 (hl dataset; https://paneldata.org/soep-core/data/hl/hlf0291)
 
@@ -96,7 +100,11 @@ PL <- read_dta(file = file.path('pl.dta'),
 
 PL2 <- read_dta(file = file.path('pl.dta'), 
                 col_select = c('pid','cid', 'hid', 'syear',
-                               "pld0148")) # Month Spouse died in PREVIOUS YEAR (-> (11))
+                               "pld0148", # Month Spouse died in PREVIOUS YEAR (-> (11))
+                               "pld0145", # Month separated Previous Year (13)
+                               "pld0142", # Month divorced Previous Year (13)
+                               "pld0154")) # Shock: Child born (12)  
+
 PL2$syear <- PL2$syear - 1 # Make then-year to previous-year e.g. entries of year 1992 become 1991
 
 
@@ -115,7 +123,7 @@ PEQUIV <- read_dta(file = file.path('pequiv.dta'),
                                   "l11102", # West Germany (14)
                                   "d11107" )) # Number of children (10)
 
-# (7) Years of Eductaion:
+# (7) Years of Eductaion
 ed1 = read_dta(file = file.path(raw_path, "ipequiv.dta"), col_select = c("pid", 'cid','hid', 'syear',   
                                                                          "d1110992" )) # 1992
 ed2 = read_dta(file = file.path(raw_path,"kpequiv.dta"), col_select = c("pid", 'cid','hid', 'syear',   
@@ -165,13 +173,31 @@ colnames(dis1) = colnames(dis2) = colnames(dis3) = colnames(dis4) = colnames(dis
 DIS =  rbind(dis1, dis2, dis3, dis4, dis5, dis6, dis7, dis8, dis9, dis10)
 rm(dis1, dis2, dis3, dis4, dis5, dis6, dis7, dis8, dis9, dis10)
 
-# shock: child born
+# (13) Shock: Separation or divorced_raw (raw)
+sepdiv1 = read_dta(file = file.path(raw_path, "jp.dta"), col_select = c("pid", 'cid','hid', 'syear',   
+                                                                     "jp10307", "jp10305" )) # 1992 + 1
+sepdiv2 = read_dta(file = file.path(raw_path,"lp.dta"), col_select = c("pid", 'cid','hid', 'syear',   
+                                                                    "lp10307", "lp10305" )) # 1994 + 1
+sepdiv3 = read_dta(file = file.path(raw_path,"np.dta"), col_select = c("pid", 'cid','hid', 'syear',   
+                                                                    "np11507", "np11505" )) # 1996 + 1
+sepdiv4 = read_dta(file = file.path(raw_path,"op.dta"), col_select = c("pid", 'cid','hid', 'syear',   
+                                                                    "op12107" , "op12105")) # 1997 + 1
+sepdiv5 = read_dta(file = file.path(raw_path,"qp.dta"), col_select = c("pid", 'cid','hid', 'syear',   
+                                                                    "qp14211", "qp14208" )) # 1999 + 1
+sepdiv6 = read_dta(file = file.path(raw_path,"sp.dta"), col_select = c("pid", 'cid','hid', 'syear',   
+                                                                    "sp13311" , "sp13308")) # 2001 + 1
+sepdiv7 = read_dta(file = file.path(raw_path,"wp.dta"), col_select = c("pid", 'cid','hid', 'syear',   
+                                                                    "wp14114" , "wp14117")) # 2005 + 1
+sepdiv8 = read_dta(file = file.path(raw_path,"yp.dta"), col_select = c("pid", 'cid','hid', 'syear',   
+                                                                    "yp15417" , "yp15420")) # 2007 + 1
+sepdiv9 = read_dta(file = file.path(raw_path,"bap.dta"), col_select = c("pid", 'cid','hid', 'syear',   
+                                                                     "bap15918", "bap15921" )) # 2009 + 1
+sepdiv10 = read_dta(file = file.path(raw_path,"bcp.dta"), col_select = c("pid", 'cid','hid', 'syear',   
+                                                                      "bcp15021", "bcp15024"  )) # 2011 + 1
+colnames(sepdiv1) = colnames(sepdiv2) = colnames(sepdiv3) = colnames(sepdiv4) = colnames(sepdiv5) = colnames(sepdiv6) = colnames(sepdiv7) = colnames(sepdiv8) = colnames(sepdiv9) = colnames(sepdiv10)
+SEPDIV =  rbind(sepdiv1,sepdiv2,sepdiv3,sepdiv4,sepdiv5,sepdiv6,sepdiv7,sepdiv8,sepdiv9, sepdiv10)
+rm(sepdiv1,sepdiv2,sepdiv3,sepdiv4,sepdiv5,sepdiv6,sepdiv7,sepdiv8,sepdiv9, sepdiv10)
 
-CHILD = read_dta(file = file.path('pl.dta'), 
-                 col_select = c('pid','cid','hid', 'syear',   
-                                "pld0154"))
-
-CHILD$syear = CHILD$syear - 1
 
 
 # 4 Load sub- functions -------------------------------------------------------
@@ -194,10 +220,14 @@ renaming <- function(df){
                   OLF = 'pglfs',
                   UEPC = 'plb0304_h', 
                   child = "d11107", 
-                  shock_partner = "pld0148", 
                   disabled_raw ="bbp10102", 
                   disabled_harm = "ple0041",
-                  shock_child = "pld0154") 
+                  shock_partner = "pld0148", 
+                  shock_child = "pld0154", 
+                  separated_raw = "bcp15024",  
+                  divorced_raw = "bcp15021", 
+                  separated_harm = "pld0145", 
+                  divorced_harm = "pld0142")
   
   df <- df %>%  dplyr::rename(any_of(var_names))
   return(df)
@@ -258,8 +288,7 @@ recoding <- function(df){
                              child3plus = case_when(child > 2 ~ 1, 
                                                     child <= 2  ~ 0),
                              
-                             shock_partner = case_when(shock_partner %in% c(1:12) ~ 1, 
-                                                       shock_partner == -2 ~ 0), 
+                             shock_partner = case_when(shock_partner %in% c(1:12) ~ 1, shock_partner == -2 ~ 0), 
                              shock_partner = replace(shock_partner, shock_partner %in% c(-1, -3:-8), NA), 
                              
                              shock_child = replace(shock_child, shock_child %in% c(1:12), 1),
@@ -272,8 +301,51 @@ recoding <- function(df){
                              
                              disabled_harm = replace(disabled_harm, disabled_harm %in% c(-1, -3:-8), NA), 
                              disabled_harm_degree = replace(disabled_harm, disabled_harm == -2, 0), 
-                             disabled_harm = replace(disabled_harm_degree, disabled_harm_degree > 0, 1)) %>%
-    
+                             disabled_harm = replace(disabled_harm_degree, disabled_harm_degree > 0, 1), 
+                             
+                             
+                             separated_raw = replace(separated_raw, separated_raw %in% c(1:12), 1),
+                             separated_raw = replace(separated_raw, separated_raw %in% c(-1,-3:-8), NA),
+                             separated_raw = replace(separated_raw, separated_raw == -2, 0),
+                             divorced_raw = replace(divorced_raw, divorced_raw %in% c(1:12), 1),
+                             divorced_raw = replace(divorced_raw, divorced_raw %in% c(-1,-3:-8), NA),
+                             divorced_raw = replace(divorced_raw, divorced_raw == -2, 0),
+                             
+                             separated_harm = replace(separated_harm, separated_harm %in% c(1:12), 1),
+                             separated_harm = replace(separated_harm, separated_harm %in% c(-1,-3:-8), NA),
+                             separated_harm = replace(separated_harm, separated_harm == -2, 0),
+                             divorced_harm = replace(divorced_harm, divorced_harm %in% c(1:12), 1),
+                             divorced_harm = replace(divorced_harm, divorced_harm %in% c(-1,-3:-8), NA),
+                             divorced_harm = replace(divorced_harm, divorced_harm == -2, 0),
+                            
+                             shock_sepdiv_raw = case_when(divorced_raw == 0 & separated_raw == 0 ~ 0, 
+                                                      divorced_raw == 1 & separated_raw == 0 ~ 1,
+                                                      divorced_raw == 0 & separated_raw == 1 ~ 1,
+                                                      divorced_raw == 1 & is.na(separated_raw) ~ 1, 
+                                                      is.na(divorced_raw) & separated_raw == 1 ~ 1, 
+                                                      divorced_raw == 1 & separated_raw == 1 ~ 1),
+                            
+                             
+                             shock_sepdiv_harm = case_when(divorced_harm == 0 & separated_harm == 0 ~ 0, 
+                                                       divorced_harm == 1 & separated_harm == 0 ~ 1,
+                                                       divorced_harm == 0 & separated_harm == 1 ~ 1,
+                                                       is.na(divorced_harm) & separated_harm == 0 ~ 0,
+                                                       divorced_harm == 0 & is.na(separated_harm) ~ 0, 
+                                                       divorced_harm == 1 & is.na(separated_harm) ~ 1, 
+                                                       is.na(divorced_harm)& separated_harm == 1 ~ 1, 
+                                                       divorced_harm == 1 & separated_harm == 1 ~ 1), 
+                             
+                             # For regression: 
+                             age25_less = ifelse(age <= 25, 1, 0), 
+                             age26_30 = ifelse(age >= 26 & age <=30, 1, 0), 
+                             age31_35 = ifelse(age >= 31 & age <=35, 1, 0), 
+                             age36_40 = ifelse(age >= 36 & age <=40, 1, 0), 
+                             age41_45 = ifelse(age >= 41 & age <=45, 1, 0),  
+                             age46_50 = ifelse(age >= 46 & age <=50, 1, 0),  
+                             age51_55 = ifelse(age >= 51 & age <=55, 1, 0),  
+                             age56_60 = ifelse(age >= 56 & age <=60, 1, 0),  
+                             age61_65 = ifelse(age >= 61 & age <=65, 1, 0), 
+                             age66_more = ifelse(age >= 66, 1, 0)) %>%
     
     mutate(UEPC = as.numeric(EP %in% c(5) & UEPC %in% c(1)), # UEPC variable construction
            EP = as.numeric(EP %in% c(1, 2, 3, 4, 6)), # EP variable construction
@@ -306,6 +378,8 @@ summstat <- function(number) {
                                                   "child3plus",
                                                   "shock_partner",
                                                   "shock_child",
+                                                  "shock_sepdiv_raw",
+                                                  "shock_sepdiv_harm",
                                                   "west",
                                                   "needcare")]), 
             type="latex", summary = TRUE, 
@@ -332,7 +406,8 @@ summstat <- function(number) {
                                  "Number of children: 3$+$", 
                                  "Shock: Spouse died", 
                                  "Shock: Child born", 
-                                 #"Shock: Divorce or separated", 
+                                 "Shock: Divorce or separated (raw)", 
+                                 "Shock: Divorce or separated (harm)", 
                                  "West Germany", 
                                  "Person needing care in HH"),
             notes = c(paste("N:", nrow(get(i[number]))), paste("Individuals:", length(unique(get(i[number])$pid)))))
@@ -349,7 +424,7 @@ universal <- PPATHL%>%
   left_join(HL) %>%
   left_join(PEQUIV) %>%
   left_join(PL2) %>%
-  left_join(CHILD) %>%
+  left_join(SEPDIV) %>%
   arrange(pid, syear, hid) # order
 
 
@@ -408,6 +483,9 @@ mean(dculture$disabled_raw,na.rm = TRUE)
 mean(dculture$disabled_raw_degree,na.rm = TRUE)
 mean(dculture$disabled_harm,na.rm = TRUE)
 mean(dculture$disabled_harm_degree,na.rm = TRUE)
+mean(dculture$shock_sepdiv_raw, na.rm = TRUE)
+mean(dculture$divorced_raw, na.rm = TRUE)
+mean(dculture$shock_sepdiv_harm, na.rm = TRUE)
 
 mean(dcinema$cinema)
 mean(dcinema$married, na.rm = TRUE)
@@ -450,13 +528,30 @@ mean(dhelp$shock_child, na.rm = T)
 # 4:= social
 # 5:= volunteer
 # 6:= help
-summstat(6)
+summstat(1)
+
+
+
+# 9 Regression Outputs ---------------------------------------------------------
+## 9.1 Table 3 -----------------------------------------------------------------
+# CULTURE
+model1 <- plm::plm(culture ~ # Interchange with dcinema, dsports, dhelp ... 
+                     UE + OLF  + age26_30 + age31_35 + 
+                     age36_40 + age41_45 + age46_50 + age51_55 + age56_60 + 
+                     age61_65 + + age66_more + shock_partner + shock_child + shock_sepdiv_harm + # Does anyone know why R does not accept shock_sepdiv_raw here??
+                     needcare + yearsedu + disabled_raw + married + child1 +  # Try to change disabled_raw with disabled_harm
+                     child2 + child3plus + west + factor(syear) , 
+                   data = data_all,  # same with dculture 
+                   index = c("pid", "syear"), #  person and time fixed effects 
+                   model = "within") # fixed effects model 
+# summary(model1)
+lmtest::coeftest(model1, vcov=sandwich::vcovHC(model1,type="HC0",cluster="group")) # clustered by pid ( if cluster argument is changed to "time" -> clustered by syear) # check: https://blog.theleapjournal.org/2016/06/sophisticated-clustered-standard-errors.html 
+
 
 
 
 
 # Figure3 - Versuch ------------------------------------------------------------
-
 d <- data_all
 # For efficiency reasons, apply the following for-loop only on individuals(pid), which ...
 # (1) ... have at least one time the entry "UE==1".  Consequently excludes all indiviuals and 

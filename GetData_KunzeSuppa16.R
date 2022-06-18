@@ -535,16 +535,16 @@ summstat(1)
 # 9 Regression Outputs ---------------------------------------------------------
 ## 9.1 Table 3 -----------------------------------------------------------------
 # CULTURE
-model1 <- plm::plm(culture ~ # Interchange with dcinema, dsports, dhelp ... 
+model1 <- plm::plm(help ~ # Interchange with cinema, sports, help ... 
                      UE + OLF  + age26_30 + age31_35 + 
                      age36_40 + age41_45 + age46_50 + age51_55 + age56_60 + 
                      age61_65 + + age66_more + shock_partner + shock_child + shock_sepdiv_harm + # Does anyone know why R does not accept shock_sepdiv_raw here??
-                     needcare + yearsedu + disabled_raw + married + child1 +  # Try to change disabled_raw with disabled_harm
+                     needcare + yearsedu + disabled_harm + married + child1 +  # Try to change disabled_raw with disabled_harm
                      child2 + child3plus + west + factor(syear) , 
-                   data = data_all,  # same with dculture 
+                   data = dhelp,  # Interchange with dcinema, dsports, dhelp ... 
                    index = c("pid", "syear"), #  person and time fixed effects 
                    model = "within") # fixed effects model 
-# summary(model1)
+ # summary(model1)
 lmtest::coeftest(model1, vcov=sandwich::vcovHC(model1,type="HC0",cluster="group")) # clustered by pid ( if cluster argument is changed to "time" -> clustered by syear) # check: https://blog.theleapjournal.org/2016/06/sophisticated-clustered-standard-errors.html 
 
 

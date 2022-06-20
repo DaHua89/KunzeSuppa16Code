@@ -546,19 +546,33 @@ model1 <- fixest::feols(culture ~ # Interchange with cinema, sports, help ...
 
 summary(model1)
 
+model2 <- fixest::feols(culture ~ # Interchange with cinema, sports, help ... 
+                          UEPC + UEO + OLF  + age26_30 + age31_35 + 
+                          age36_40 + age41_45 + age46_50 + age51_55 + age56_60 + 
+                          age61_65 + shock_partner + shock_child + shock_sepdiv_harm + 
+                          needcare + yearsedu + disabled_harm + married + child1 +  
+                          child2 + child3plus + west  | pid  + syear, 
+                        cluster = ~ pid, # for individual clustered standard errors
+                        data = dculture)  # Interchange with dcinema, dsports, dhelp ...  
 
+summary(model2)
 
 
 ## 9.2 Can't include shock_sepdiv_raw: reason ---------------
-data <- model1$model
-data[complete.cases(data),] %>% nrow() == nrow(data) # to see that plm uses only complete case observations
-covariates <- c('pid', 'UE', 'OLF', 'age26_30', 'age31_35',
+covariates_harm <- c('pid', 'UE', 'OLF', 'age26_30', 'age31_35',
+                'age36_40', 'age41_45' , 'age46_50' , 'age51_55' , 'age56_60' , 
+                'age61_65' , 'age66_more' , 'shock_partner' , 'shock_child' , 'shock_sepdiv_harm' , 
+                'needcare' , 'yearsedu' , 'disabled_harm' , 'married' , 'child1' ,  
+                'child2' , 'child3plus' , 'west' , 'syear')
+data <- dculture[unlist(model1$obs_selection), covariates_harm] # to get the data used by feols after deleting incomplete observations. Change to dhelp, dcinema ... respectively
+data[complete.cases(data),] %>% nrow() == nrow(data) # to see that feols uses only complete case observations
+covariates_raw <- c('pid', 'UE', 'OLF', 'age26_30', 'age31_35',
                 'age36_40', 'age41_45' , 'age46_50' , 'age51_55' , 'age56_60' , 
                 'age61_65' , 'age66_more' , 'shock_partner' , 'shock_child' , 'shock_sepdiv_raw' , 
                 'needcare' , 'yearsedu' , 'disabled_harm' , 'married' , 'child1' ,  
                 'child2' , 'child3plus' , 'west' , 'syear')
 
-data <- dhelp %>% select(all_of(covariates)) # select covariates including shock_sepdiv_raw
+data <- dculture %>% select(all_of(covariates)) # select covariates including shock_sepdiv_raw
 colnames(data)
 complete.cases(data) %>% mean() # only low share of observations left
 data <- data[complete.cases(data),]

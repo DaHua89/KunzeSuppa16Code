@@ -413,6 +413,48 @@ summstat <- function(number) {
 }
 
 
+# The getttests() sub-function takes a number as its only argument. 
+# It returns a t-test for all covariates of one particular dataset.
+getttests <- function(number){
+  EP <- rep(0.724, 6)
+  UE <- rep(0.069, 6)
+  OLF <- rep(0.207, 6)
+  UEPC <- rep(0.004,6)
+  UEO <- rep(0.065 , 6)
+  age <- c(42.579, 42.563, 42.565, 42.575, 42.562, 42.569)
+  yearsedu <- c(12.058, 12.058, 12.060, 12.057, 12.059, 12.057 )
+  disabled_harm <- c(0.091, 0.091, 0.090, 0.091, 0.091, 0.091)
+  married <- rep(0.660, 6)
+  child0 <- rep(0.594, 6)
+  child1 <- rep(0.202, 6)
+  child2 <- rep(0.152, 6)
+  child3plus <- rep(0.052, 6)
+  shock_partner <- rep(0.002,6)
+  shock_child <- rep(0.031, 6)
+  shock_sepdiv_harm <- rep(0.020,6)
+  west <- rep(0.744,6)
+  needcare <- rep(0.027,6)
+  meansref  <- data.frame(rbind(EP, UE, OLF , UEPC, UEO, age, yearsedu, disabled_harm, 
+                                married, child0, child1, child2, child3plus, 
+                                shock_partner, shock_child, shock_sepdiv_harm, west, 
+                                needcare))
+  rm(EP, UE, OLF , UEPC, UEO, age, yearsedu, disabled_harm, 
+     married, child0, child1, child2, child3plus, 
+     shock_partner, shock_child, shock_sepdiv_harm, west, 
+     needcare)
+  
+  i <- c("dculture", "dcinema","dsports", "dsocial", "dvolunteer", "dhelp")
+  cov <- c("EP","UE", "OLF", "UEPC", "UEO", "age", "yearsedu","disabled_harm",  
+           "married", "child0", "child1","child2", "child3plus", "shock_partner",
+           "shock_child","shock_sepdiv_harm","west","needcare")
+  df <- get(i[number])
+  for (j in 1:length(cov)){ 
+    print(paste("### TEST FOR", cov[j], "OF", i[number], "DATASET ####"))
+    print(t.test(df[which(names(df) == cov[j])], mu = meansref[j,number] , 
+                 alternative = "two.sided"))
+  }
+}
+
 
 # 5 Merge to universal dataset ------------------------------------------------
 universal <- PPATHL%>% 
@@ -580,5 +622,22 @@ unique(data[,1]) %>% nrow() # we now have the same number of unique individuals 
   # This leads to more parameters than observations because of the fixed individual effects
 
 
+## 10 Difference in Means Analysis ---------------------------------------------
+# 10.1 Main Variables ----------------------------------------------------------
+t.test(dculture$culture, mu = 1.841, alternative = "two.sided") # p-value = 0.01506 <  0.05 -> stat. sign. difference  
+t.test(dcinema$cinema, mu = 2.045, alternative = "two.sided") # p-value = 0.195 > 0.05 
+t.test(dsports$sports, mu = 2.262, alternative = "two.sided") # p-value = 0.0006551 
+t.test(dsocial$social, mu = 3.191, alternative = "two.sided") # p-value = 0.0009791
+t.test(dvolunteer$volunteer, mu = 1.553, alternative = "two.sided") # p-value = 0.00634 
+t.test(dhelp$help, mu = 2.476, alternative = "two.sided") # p-value = 0.006475
 
-
+# 10.2 Covariates --------------------------------------------------------------
+# Please choose a number: 
+# 1:= culture
+# 2:= cinema
+# 3:= sports
+# 4:= social
+# 5:= volunteer
+# 6:= help
+number <- 1
+getttests(1)

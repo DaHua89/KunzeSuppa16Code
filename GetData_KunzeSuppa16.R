@@ -715,7 +715,7 @@ ggplot(gather(data_hist), aes(value, group = key)) +
   #scale_y_continuous(labels = percent) +
   coord_cartesian(ylim=c(0, 0.7))+
   facet_wrap(~ key) + 
-  ggtitle("Relative Response Frequencies for Social Activities") +
+  #ggtitle("Relative Response Frequencies for Social Activities") + # Titel würde ich via Latex hinzufügen 
   theme( title = element_text(colour = "gray20", size = 10),
          axis.title.x= element_text(colour = "gray40", size = 10),
          axis.title.y = element_text(colour = "gray40", size = 10), 

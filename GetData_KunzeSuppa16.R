@@ -503,6 +503,7 @@ getttable <- function(){
     meandiff[2*j,number] <-round(test$p.value, 3)
   }
   }
+  return(meandiff)
 }
 
 
@@ -673,8 +674,8 @@ unique(data[,1]) %>% nrow() # we now have the same number of unique individuals 
 
 
 
-## 10 Difference in Means Analysis ---------------------------------------------
-# 10.1 Main Variables ----------------------------------------------------------
+# 10 Difference in Means Analysis ---------------------------------------------
+## 10.1 Main Variables ----------------------------------------------------------
 t.test(dculture$culture, mu = 1.841, alternative = "two.sided") # p-value = 0.01506 <  0.05 -> stat. sign. difference  
 t.test(dcinema$cinema, mu = 2.045, alternative = "two.sided") # p-value = 0.195 > 0.05 
 t.test(dsports$sports, mu = 2.262, alternative = "two.sided") # p-value = 0.0006551 
@@ -682,8 +683,8 @@ t.test(dsocial$social, mu = 3.191, alternative = "two.sided") # p-value = 0.0009
 t.test(dvolunteer$volunteer, mu = 1.553, alternative = "two.sided") # p-value = 0.00634 
 t.test(dhelp$help, mu = 2.476, alternative = "two.sided") # p-value = 0.006475
 
-# 10.2 Covariates --------------------------------------------------------------
-getttable() # Check outout dataframe: meandiff in global environment 
+## 10.2 Covariates --------------------------------------------------------------
+meansdiff <- getttable() # Check outout dataframe: meandiff in global environment 
 # Control: 
 # Please choose a number: 
 # 1:= culture

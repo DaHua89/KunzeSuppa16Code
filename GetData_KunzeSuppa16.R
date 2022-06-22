@@ -727,6 +727,28 @@ ggplot(gather(data_hist), aes(value, group = key)) +
                                                     "monthly","weekly")) + 
   xlab("Frequency") + 
   ylab("Fraction")  
+       
+       
+ # alternative to histogram
+
+names(data_all)[25:30] = c("Cinema", "Culture", "Sports", "Social", "Volunteer", "Help")
+
+longer_data = data_all %>% drop_na(c(Cinema,Culture,Sports,Social, Volunteer,Help)) %>% 
+  pivot_longer(c(Cinema,Culture,Sports,Social, Volunteer,Help), names_to = "var", values_to = "response")
+  
+longer_data$response2 = factor(longer_data$response, 1:4, c("never", "seldomly", "monthly", "weekly"))
+
+longer_data %>%
+  ggplot(aes(x = response2)) +
+  geom_bar(aes(y = 6*(..count..)/sum(..count..))) +
+  facet_wrap(vars(var), ncol = 3, scales = "free") +
+  labs(x = "", y = "Fraction") +
+  theme_bw() + 
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) + 
+  theme(panel.grid.minor.x=element_blank(),
+        panel.grid.major.x=element_blank())
+
+
   
 
 

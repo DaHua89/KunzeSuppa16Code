@@ -625,7 +625,7 @@ summstat(1)
 
 
 # 9 Regression Outputs ---------------------------------------------------------
-## 9.1 Table 3 -----------------------------------------------------------------
+## 9.1 Model1: Table 3 in ref paper --------------------------------------------
 # CULTURE
 model1 <- fixest::feols(culture ~ # Interchange with cinema, sports, help ... 
                           UE + OLF  + age26_30 + age31_35 + 
@@ -638,7 +638,7 @@ model1 <- fixest::feols(culture ~ # Interchange with cinema, sports, help ...
 
 
 summary(model1)
-
+## 9.1 Model1: Table 4 in ref paper --------------------------------------------
 model2 <- fixest::feols(culture ~ # Interchange with cinema, sports, help ... 
                           UEPC + UEO + OLF  + age26_30 + age31_35 + 
                           age36_40 + age41_45 + age46_50 + age51_55 + age56_60 + 
@@ -651,7 +651,7 @@ model2 <- fixest::feols(culture ~ # Interchange with cinema, sports, help ...
 summary(model2)
 
 
-## 9.2 Can't include shock_sepdiv_raw: reason ---------------
+## Extra: Can't include shock_sepdiv_raw: reason ---------------
 covariates_harm <- c('pid', 'UE', 'OLF', 'age26_30', 'age31_35',
                 'age36_40', 'age41_45' , 'age46_50' , 'age51_55' , 'age56_60' , 
                 'age61_65' , 'age66_more' , 'shock_partner' , 'shock_child' , 'shock_sepdiv_harm' , 
@@ -696,6 +696,38 @@ meansdiff <- getttable() # Check outout dataframe: meandiff in global environmen
 number <- 1
 getttests(1)
 
+
+
+# 11 Histogram ----------------------------------------------------------------
+data_hist <- data_all %>% 
+  select(cinema, culture, sports, social, volunteer, help) %>% 
+  rename("Cinema" = cinema, 
+         "Culture" = culture, 
+         "Sports" = sports, 
+         "Socialize" = social, 
+         "Volunteer" = volunteer, 
+         "Helping" = help)
+data_hist <- gather(data_hist)               
+data_hist$key <- factor(data_hist$key,levels = c("Cinema","Culture", "Sports", 
+                                                 "Socialize", "Volunteer",  "Helping"))
+ggplot(gather(data_hist), aes(value, group = key)) + 
+  geom_histogram(aes(y = stat(density)),bins = 4, binwidth = 1, col="grey") + 
+  #scale_y_continuous(labels = percent) +
+  coord_cartesian(ylim=c(0, 0.7))+
+  facet_wrap(~ key) + 
+  ggtitle("Relative Response Frequencies for Social Activities") +
+  theme( title = element_text(colour = "gray20", size = 10),
+         axis.title.x= element_text(colour = "gray40", size = 10),
+         axis.title.y = element_text(colour = "gray40", size = 10), 
+         axis.text.x = element_text(angle = 35, vjust = 0.5, hjust=0.2, colour="gray40"),
+         panel.grid.major.y = element_line(colour="gray40", size=0.1, linetype = 'solid'),
+         axis.ticks = element_line(colour="gray40", size = 0.1),
+         panel.background = element_rect(fill = "transparent", color = NA)) + 
+    scale_x_continuous(breaks = c(1:4), labels= c("never","seldom",
+                                                    "monthly","weekly")) + 
+  xlab("Frequency") + 
+  ylab("Fraction")  
+  
 
 
 

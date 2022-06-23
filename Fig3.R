@@ -139,7 +139,157 @@ dfigure3 %>% ggplot(aes(x= time), y=  i) +
   # coord_cartesian(ylim = c(2, 3.4)) +
   ylab(n) + labs(title=str_remove_all(pattern, "[\\(\\),<>=?]"))
 
+## ------------------ 2nd approach
 
+#Optionally, one can exchange the years for data_all to c(1992, 1994, 1995, 1996,   
+#                                        1997, 1998, 1999, 2001, 2003, 2005, 
+#                                       2007, 2008, 2009, 2011) and proceed as follows:
+data = data_all
+
+subsel = aggregate((1-data$UE), by = list(as.factor(data$pid)), prod)
+
+#Now, subsel consists of the product of all employment indicators, leaving us with 0 for everyone who at any one point was unemployed. 
+
+index1 = subsel[subsel$x == 0,]
+
+sub2 = data[data$pid %in% index1$Group.1,]
+
+#sub2 is now our dataset with all people who at at least one point have been unemployed
+
+#further filtering:
+
+subsel2 = aggregate((sub2$UE), by = list(as.factor(sub2$pid)), prod)
+
+#Now, subsel2 consists of the product of all employment indicators that were left, 
+#leaving us with 0 for everyone who at any one point was unemployed.
+
+index2 = subsel2[subsel2$x == 0,]
+
+sub3 = sub2[sub2$pid %in% index2$Group.1,]
+
+#Now we have filtered out all people who have been without work for the whole period
+
+#Next, we will filter out all people whose first value is not a 1.
+
+index3 =  aggregate((sub3$UE), by = list(as.factor(sub3$pid)), mean)
+
+list = index3$Group.1
+
+list = as.numeric(as.character(list))
+
+length(list)
+
+help = rep(NA,length(list))
+
+#install.packages("foreach")
+
+library(foreach)
+
+foreach (i = list, j = 1:length(list)) %do% {
+  
+    dat = sub3[sub3$pid == i,]
+    
+    pattern = c(1,1,1,1,0,0,0,0,0)
+  
+    help[j] = grepl(toString(pattern),toString(dat$EP))
+
+}
+
+#Now we have created a variable that contains TRUE values for all ped's that contain the pattern
+
+pedpattern = list[help]
+
+sub4 = sub3[sub3$pid %in% pedpattern,]
+
+#338 people with 6124 measurements show this pattern
+
+#Now we can move on to our last step, the a 
+
+library(stringr)
+
+i = 1
+
+helpframe = data.frame(matrix(0, ncol = 6, nrow = 9))
+
+for (i in pedpattern) {
+  
+  dat2 = sub4[sub4$pid == i,]
+  
+  sequence = paste(dat2$EP, collapse = "")
+  
+  match = str_locate_all(sequence, "111100000")
+  
+  matches = do.call(rbind, match)
+  
+  finaldata = dat2[matches[1]:matches[2],]
+  
+  finaldata = finaldata[,25:30]
+  
+  helpframe = cbind(helpframe, finaldata)
+  
+}
+
+finalframe = helpframe[,7:2334]
+
+T1 = as.numeric(finalframe[1,])
+T2 = as.numeric(finalframe[2,])
+T3 = as.numeric(finalframe[3,])
+T4 = as.numeric(finalframe[4,])
+T5 = as.numeric(finalframe[5,])
+T6 = as.numeric(finalframe[6,])
+T7 = as.numeric(finalframe[7,])
+T8 = as.numeric(finalframe[8,])
+T9 = as.numeric(finalframe[9,])
+
+cult1 = mean(T1[seq(1, length(T1), 6)], na.rm = T)
+cult2 = mean(T2[seq(1, length(T1), 6)], na.rm = T)
+cult3 = mean(T3[seq(1, length(T1), 6)], na.rm = T)
+cult4 = mean(T4[seq(1, length(T1), 6)], na.rm = T)
+cult5 = mean(T5[seq(1, length(T1), 6)], na.rm = T)
+cult6 = mean(T6[seq(1, length(T1), 6)], na.rm = T)
+cult7 = mean(T7[seq(1, length(T1), 6)], na.rm = T)
+cult8 = mean(T8[seq(1, length(T1), 6)], na.rm = T)
+cult9 = mean(T9[seq(1, length(T1), 6)], na.rm = T)
+
+plot(c(cult1, cult2, cult3, cult4, cult5, cult6, cult7, cult8, cult9), type = "b", ylim=c(1,2.5))
+
+cint1 = mean(T1[seq(2, length(T1), 6)], na.rm = T)
+cint2 = mean(T2[seq(2, length(T1), 6)], na.rm = T)
+cint3 = mean(T3[seq(2, length(T1), 6)], na.rm = T)
+cint4 = mean(T4[seq(2, length(T1), 6)], na.rm = T)
+cint5 = mean(T5[seq(2, length(T1), 6)], na.rm = T)
+cint6 = mean(T6[seq(2, length(T1), 6)], na.rm = T)
+cint7 = mean(T7[seq(2, length(T1), 6)], na.rm = T)
+cint8 = mean(T8[seq(2, length(T1), 6)], na.rm = T)
+cint9 = mean(T9[seq(2, length(T1), 6)], na.rm = T)
+
+plot(c(cint1, cint2, cint3, cint4, cint5, cint6, cint7, cint8, cint9), type = "b", ylim=c(1,2.5))
+
+sport1 = mean(T1[seq(3, length(T1), 6)], na.rm = T)
+sport2 = mean(T2[seq(3, length(T1), 6)], na.rm = T)
+sport3 = mean(T3[seq(3, length(T1), 6)], na.rm = T)
+sport4 = mean(T4[seq(3, length(T1), 6)], na.rm = T)
+sport5 = mean(T5[seq(3, length(T1), 6)], na.rm = T)
+sport6 = mean(T6[seq(3, length(T1), 6)], na.rm = T)
+sport7 = mean(T7[seq(3, length(T1), 6)], na.rm = T)
+sport8 = mean(T8[seq(3, length(T1), 6)], na.rm = T)
+sport9 = mean(T9[seq(3, length(T1), 6)], na.rm = T)
+
+plot(c(sport1, sport2, sport3, sport4, sport5, sport6, sport7, sport8, sport9), type = "b", ylim=c(1,2.5))
+
+soct1 = mean(T1[seq(4, length(T1), 6)], na.rm = T)
+soct2 = mean(T2[seq(4, length(T1), 6)], na.rm = T)
+soct3 = mean(T3[seq(4, length(T1), 6)], na.rm = T)
+soct4 = mean(T4[seq(4, length(T1), 6)], na.rm = T)
+soct5 = mean(T5[seq(4, length(T1), 6)], na.rm = T)
+soct6 = mean(T6[seq(4, length(T1), 6)], na.rm = T)
+soct7 = mean(T7[seq(4, length(T1), 6)], na.rm = T)
+soct8 = mean(T8[seq(4, length(T1), 6)], na.rm = T)
+soct9 = mean(T9[seq(4, length(T1), 6)], na.rm = T)
+
+plot(c(soct1, soct2, soct3, soct4, soct5, soct6, soct7, soct8, soct9), type = "b", ylim=c(1,2.5))
+
+#helping and volunteer ommited for space reasons
 
 
 

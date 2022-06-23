@@ -169,7 +169,7 @@ sub3 = sub2[sub2$pid %in% index2$Group.1,]
 
 #Now we have filtered out all people who have been without work for the whole period
 
-#Next, we will filter out all people whose first value is not a 1.
+#Next, we will filter out all subsections that do not contain the pattern:
 
 index3 =  aggregate((sub3$UE), by = list(as.factor(sub3$pid)), mean)
 
@@ -203,7 +203,7 @@ sub4 = sub3[sub3$pid %in% pedpattern,]
 
 #338 people with 6124 measurements show this pattern
 
-#Now we can move on to our last step, the a 
+#Now we can move on recognizing the pattern:
 
 library(stringr)
 
@@ -289,8 +289,91 @@ soct9 = mean(T9[seq(4, length(T1), 6)], na.rm = T)
 
 plot(c(soct1, soct2, soct3, soct4, soct5, soct6, soct7, soct8, soct9), type = "b", ylim=c(1,2.5))
 
-#helping and volunteer ommited for space reasons
+#As we can see from our limited examples, taking 9 consecutive measurements does not yield the correct results. 
+
+## ------------------ different pattern strategy
+
+#alternatively, we could consider a strategy where every possible combination of patterns is used to obtain data for the different measures.
+#If this was true, searching for an employment pattern of c(1,0,0,0,0,0) would at least yield the correct values for t = 4, since it includes every possible
+#combination of 1s. This strategy will now be evaluated and measures for t = 4 will be compared in the following:
 
 
+foreach (i = list, j = 1:length(list)) %do% {
+  
+  dat = sub3[sub3$pid == i,]
+  
+  pattern = c(1,0,0,0,0,0)
+  
+  help[j] = grepl(toString(pattern),toString(dat$EP))
+  
+}
 
+#Now we have again created a variable that contains TRUE values for all ped's that contain the new pattern
 
+pedpattern = list[help]
+
+sub4 = sub3[sub3$pid %in% pedpattern,]
+
+#In the next step, we will again look for the pattern in the data. In the case of double appearance of the pattern, both appearances will be taken 
+#as independant measurements (leaving out the second pattern did not change the result substantially). 
+
+library(stringr)
+
+helpframe = data.frame(matrix(0, ncol = 6, nrow = 6))
+
+for (i in pedpattern) {
+  
+  dat2 = sub4[sub4$pid == i,]
+  
+  sequence = paste(dat2$EP, collapse = "")
+  
+  match = str_locate_all(sequence, "100000")
+  
+  matches = do.call(rbind, match)
+  
+  if (nrow(matches) > 1){
+    
+    finaldata1 = dat2[matches[1,1]:matches[1,2],]
+    
+   finaldata2 = dat2[matches[2,1]:matches[2,2],]
+    
+    finaldata1 = finaldata1[,25:30]
+    
+    finaldata2 = finaldata2[,25:30]
+    
+    helpframe = cbind(helpframe, finaldata1,finaldata2)
+    
+    print(cbind(finaldata1,finaldata2))
+    
+  }
+  
+  else{
+    
+    finaldata = dat2[matches[1]:matches[2],]
+    
+    finaldata = finaldata[,25:30]
+    
+    print(finaldata)
+    
+    helpframe = cbind(helpframe, finaldata)
+  }
+  
+}
+
+finalframe = helpframe[,7:length(helpframe)]
+
+T9 = as.numeric(finalframe[6,])
+
+cult9 = mean(T9[seq(1, length(T9), 6)], na.rm = T)
+
+cint9 = mean(T9[seq(2, length(T9), 6)], na.rm = T)
+
+sport9 = mean(T9[seq(3, length(T9), 6)], na.rm = T)
+
+soct9 = mean(T9[seq(4, length(T9), 6)], na.rm = T)
+
+helpt9 = mean(T9[seq(5, length(T9), 6)], na.rm = T)
+
+volunt9 = mean(T9[seq(6, length(T9), 6)], na.rm = T)
+
+#As we can see, the values are still substantially far away from the t = 4 measurements in the original paper.

@@ -2,7 +2,7 @@
 
 This repository includes the accompanying code to our term paper, the goal of which is the replication of the results obtained by 
 
-Kunze & Suppa (2017) in "Bowling alone or bowling at all? The effect of unemployment on social participation", 
+L. Kunze, N. Suppa (2017) in "Bowling alone or bowling at all? The effect of unemployment on social participation", 
 *[Journal of Economic Behavior & Organization](https://doi.org/10.1016/j.jebo.2016.11.012)*, 133, 213–235. 
 
 ## Structur

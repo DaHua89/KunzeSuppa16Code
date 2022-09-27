@@ -3,7 +3,7 @@
 This repository includes the accompanying code to our term paper, the goal of which is the replication of the results obtained by 
 
 Kunze & Suppa (2017) in "Bowling alone or bowling at all? The effect of unemployment on social participation", 
-*[Journal of Economic Behavior & Organization](https://github.com/reifjulian/rscript](https://doi.org/10.1016/j.jebo.2016.11.012)*, 133, 213–235. 
+*[Journal of Economic Behavior & Organization](https://doi.org/10.1016/j.jebo.2016.11.012)*, 133, 213–235. 
 
 ## Structur
 The folder **code/** contains three .R files:  replicates the figures and tables for the manuscript located in the folder **paper/**.
@@ -18,7 +18,7 @@ For copyright reasons, the SOEP data set cannot be made available here, but is a
 
 ## Note 
 The main analysis is written in *R*. To run the code, *R* should be installed on your work engine. 
-For the installation process, we suggest to follow the guidline provided by [Datacamp.com](https://github.com/DaHua89/KunzeSuppa16Code.git](https://www.datacamp.com/tutorial/installing-R-windows-mac-ubuntu).
+For the installation process, we suggest to follow the guidline provided by [Datacamp.com](https://www.datacamp.com/tutorial/installing-R-windows-mac-ubuntu).
 
 ## Instructions
 1. Download this repository by clicking on the green "Clone or download" button above, or click [here](https://github.com/DaHua89/KunzeSuppa16Code.git). 
@@ -26,6 +26,12 @@ For the installation process, we suggest to follow the guidline provided by [Dat
 
 
 ## Authors
-I. Fetzer  <br />  <br />  <br />  <br />  M. Paul  <br />  <br />  <br />  <br />  T. Bethge 
-Humboldt University of Berlin  <br /> Humboldt University of Berlin  <br /> Humboldt University of Berlin 
+I. Fetzer   
+Humboldt University of Berlin 
 fetzeris@hu-berlin.de
+
+M. Paul  
+Humboldt University of Berlin 
+
+T. Bethge 
+Humboldt University of Berlin 

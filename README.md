@@ -9,8 +9,7 @@ Kunze & Suppa (2017) in "Bowling alone or bowling at all? The effect of unemploy
 The folder **code/** contains three .R files:  replicates the figures and tables for the manuscript located in the folder **paper/**.
 1. **GetDataset.R** generates the **baseline data set** used in the term paper.
 2. **GetFigures.R** produces **all figures** of the term paper, and saves it in **output/figures** in .png format.
-3. **GetTables.R** automates the creation of manuscripts for **all tables** of the term paper, and saves it in **output/tables** in .tex and .pdf formats.  
-Tables as found in the term paper may differ slightly from the table manuscripts due to minor design-related manual adjustments. 
+3. **GetTables.R** automates the creation of manuscripts for **all tables** of the term paper, and saves it in **output/tables** in .tex and .pdf formats. Tables as found in the term paper may differ slightly from the table manuscripts due to minor design-related manual adjustments. 
 
 ## Data 
 The baseline data set of our term paper was retrieved from the Teaching Version of the *German Socio-Economic Panel* (SOEP) data set, provided by the *German Institute for Economic Research* (DIW Berlin), for the years from 1992 to 2011. 
@@ -26,12 +25,12 @@ For the installation process, we suggest to follow the guidline provided by [Dat
 
 
 ## Authors
-I. Fetzer   
-Humboldt University of Berlin 
+I. Fetzer   <br>
+Humboldt University of Berlin  <br>
 fetzeris@hu-berlin.de
 
-M. Paul  
+M. Paul  <br>
 Humboldt University of Berlin 
 
-T. Bethge 
+T. Bethge <br>
 Humboldt University of Berlin 

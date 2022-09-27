@@ -19,7 +19,7 @@ For copyright reasons, the SOEP data set cannot be made available here, but is a
 The main analysis is written in *R*. To run the code, *R* should be installed on your work engine. 
 For the installation process, we suggest to follow the guidline provided by [Datacamp.com](https://www.datacamp.com/tutorial/installing-R-windows-mac-ubuntu).
 
-## Instructions
+## How to run the code?
 1. Download this repository by clicking on the green "Clone or download" button above, or click [here](https://github.com/DaHua89/KunzeSuppa16Code.git). 
 .... 
 

@@ -6,7 +6,7 @@ Kunze & Suppa (2017) in "Bowling alone or bowling at all? The effect of unemploy
 *[Journal of Economic Behavior & Organization](https://doi.org/10.1016/j.jebo.2016.11.012)*, 133, 213–235. 
 
 ## Structur
-The folder **code/** contains three .R files:  replicates the figures and tables for the manuscript located in the folder **paper/**.
+The folder **code/** contains three .R files: 
 1. **GetDataset.R** generates the **baseline data set** used in the term paper.
 2. **GetFigures.R** produces **all figures** of the term paper, and saves it in **output/figures** in .png format.
 3. **GetTables.R** automates the creation of manuscripts for **all tables** of the term paper, and saves it in **output/tables** in .tex and .pdf formats. Tables as found in the term paper may differ slightly from the table manuscripts due to minor design-related manual adjustments. 

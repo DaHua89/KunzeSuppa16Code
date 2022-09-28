@@ -18,13 +18,14 @@
 rm(list=ls(all=TRUE))         # clear environment
 graphics.off()                # clear console
 # set working directory 
-setwd("~/Downloads/Stata/") # Isabell 
-#setwd("C:/Users/User/Documents/SOEP-CORE.v37teaching_STATA/Stata/") # Till 
+#setwd("~/Downloads/Stata/") # Isabell 
+setwd("C:/Users/User/Documents/SOEP-CORE.v37teaching_STATA/Stata/") # Till 
 #setwd() # Max
 raw_path <- "raw"
 # install & load packages
 libraries = c("haven", "dplyr", "labelled", "tidyr", "ggplot2", "Hmisc", 
-              "stringi", "stargazer", "lubridate", "todor", "stringr", "fixest")
+              "stringi", "stargazer", "lubridate", "todor", "stringr", "fixest",
+              "mice", "miceadds", "micemd", "tidyverse")
 lapply(libraries, function(x) if (!(x %in% installed.packages())) 
 { install.packages(x) })
 lapply(libraries, library, quietly = TRUE, character.only = TRUE)
@@ -748,8 +749,51 @@ longer_data %>%
   theme(panel.grid.minor.x=element_blank(),
         panel.grid.major.x=element_blank())
 
+# 12 imputation -----------------------------------------------------------
+## 12.1 2l.pmm method, long format ----------------------------------------
+# everything is for dcinema only
+covariates <- c('pid', 'UEPC', 'UEO', 'OLF', 'age26_30', 'age31_35',
+                'age36_40', 'age41_45' , 'age46_50' , 'age51_55' , 'age56_60' , 
+                'age61_65', 'shock_partner' , 'shock_child' , 'shock_sepdiv_harm' , 
+                'needcare' , 'yearsedu' , 'disabled_harm' , 'married' , 'child1' ,  
+                'child2' , 'child3plus' , 'west' , 'syear')
+# converting relevant variables to factors because the mice command will
+# recognize that it's a factor and choose the imputation method as specified for factors
+# note that syear is also converted to a factor variable and included as a predictor in 
+# the imputation models
+no_factor <- c("cid", "hid", "pid", "gebjahr", "netto",
+               "phrf", "yearsedu", "age", "cinema")
+list1 <- lapply(dcinema[,-which(colnames(dcinema) %in% no_factor)], factor)
+dcinema2 <- data.frame(list1, dcinema[,no_factor])
 
-  
+dcinema2 <- dcinema2 %>% select(covariates, "cinema")
 
+pm <- make.predictorMatrix(dcinema2)
+pm[,'pid'] <- -2 # specify cluster variable pid 
+pm['pid', 'pid'] <- 0 # (but not for itself)
+
+# We could think of excluding some variables in the imputation model. Right now, simply all other
+# variables are included as predictors. The method for both binary and metric
+# variables is specified as 2l.pmm, meaning predictive mean matching based on a mixed effect model. The way
+# that the predictor matrix is specified the mixed effects model should include a random intercept
+# for each individual and for the other predictors fixed effects. 
+imputations <- mice(dcinema2, predictorMatrix = pm, 
+                    defaultMethod = c('2l.pmm', '2l.pmm', 'polyreg', 'polr'), seed=328,
+                    maxit = 5, m=5)
+
+list2 <- imputations %>% complete('all') # extract five imputed datasets
+
+est <- list2 %>% lapply(feols, fml = cinema ~ 
+                          UEPC + UEO + OLF  + age26_30 + age31_35 + 
+                          age36_40 + age41_45 + age46_50 + age51_55 + age56_60 + 
+                          age61_65 + shock_partner + shock_child + shock_sepdiv_harm + 
+                          needcare + yearsedu + disabled_harm + married + child1 +  
+                          child2 + child3plus + west  | pid  + syear, cluster = ~pid) %>%
+  pool() 
+summary(est)
+# The warning about the exponentiate argument is not a problem, I checked this. The pool() function
+# is based on tidy() and uses the argument exponentiate=F, which is ignored for the fixest object
+# but it would not have done anything anyways
+# Another thing to discuss might be that our clusters are very small (few observations per individual)
 
 

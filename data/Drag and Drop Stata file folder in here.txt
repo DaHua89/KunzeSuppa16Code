@@ -1,1 +1,3 @@
-Please drag and drop the data file folder 'Stata' (565 items, approx. 8,64 GB), which was provided for download by our professor (via the German Social-economic Panel Study) into this subfolder here. 
+Please drag and drop the complete (!) data file folder 'Stata' (not only the folder content!), which was provided for download by our professor and the German Social-economic Panel Study into this subfolder here. 
+
+The 'Stata' folder consists of 565 items and is approx. 8,64 GB large.

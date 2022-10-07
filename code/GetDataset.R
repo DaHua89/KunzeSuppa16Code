@@ -194,6 +194,7 @@ universal <- PPATHL %>%
 
 
 
+
 # 3 Generate main datasets -----------------------------------------------------
 ## 3.1 Apply filters -----------------------------------------------------------
 data_all <- universal %>% 
@@ -211,7 +212,7 @@ data_all <- data_all %>% renaming() %>% recoding()
 
 ## 3.3 Subsetting data set ------------------------------------------------------
 datasets <- list()
-main_vars <- c("culture", "cinema", "sports", "social", "help", "volunteer")
+main_vars <- c("culture", "cinema", "sports", "social","volunteer", "help")
 for (i in 1:length(main_vars)){
   currentvar <- main_vars[i] # current main variable (e.g main_vars[1] = "culture", main_vars[2] = "cinema" ...)
   allothermainvars <- main_vars[-(which(main_vars == currentvar))] # all other main variables except the current one 

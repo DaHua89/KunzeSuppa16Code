@@ -127,7 +127,7 @@ for (i in 2:nrow(sumstat_all)){
 rownames(sumstat_all) <- NULL
 # Create Latex output
 options(knitr.table.format = "latex")
-tex_sumstat <- kable(sumstat_all, booktabs = TRUE, caption = "Comparison of Summary Statisics", 
+tex_sumstat <- kable(sumstat_all, booktabs = TRUE, caption = "Comparison of Summary Statistics", 
               align = "lcccccc", row.names = FALSE, linesep = "") %>% 
   add_header_above(c(" ", "Mean Values of our analysis vs.parencite "=6)) %>% 
   kable_styling(latex_options = "hold_position")

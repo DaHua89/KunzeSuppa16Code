@@ -259,7 +259,7 @@ labeling <- function(df){
 # The function returns a modified dataframe. 
 recoding <- function(df){
   # Rausgenommen: 07.10.2022
-  % df_main <- df %>% filter(syear %in% c(1992, 1994, 1996, 1997, 1999, 2001, 2005, 2007, 2009, 2011)) %>%
+  # df_main <- df %>% filter(syear %in% c(1992, 1994, 1996, 1997, 1999, 2001, 2005, 2007, 2009, 2011)) %>%
     # Modifications on our 6 main variables 
    df_main <- df %>%  mutate_at(c("culture", "cinema", "sports", "social", "help", "volunteer"),
               funs(recode(., '2'=4, '3'=3, '4'=2, '5'=1))) %>% # recode all variables' (.) values, whereas 2 becomes 4, 4 becomes 2 and 5 becomes 1 

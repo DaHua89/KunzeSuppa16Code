@@ -47,7 +47,8 @@ R.Version()$version.string
 # Please follow the description in the SetWD.pdf file to manually complete 
 # the command "setwd(..)" by filling in the path to 
 # folder "KunzeSuppa_JEBO2017_ReplicationFiles" for ".........": 
-setwd("......... /KunzeSuppa_JEBO2017_ReplicationFiles") 
+setwd("~/Downloads/KunzeSuppa_JEBO2017_ReplicationFiles")
+# setwd("......... /KunzeSuppa_JEBO2017_ReplicationFiles") 
 
 
 
@@ -60,18 +61,37 @@ graphics.off()                # clear console
 ## 2.2 Install & load packages -------------------------------------------------
 # Please run the next 5 lines of code. 
 libraries = c("haven", "dplyr", "here", "labelled", "tidyr", "ggplot2", "Hmisc", 
-              "stringi", "stargazer", "lubridate", "todor", "stringr", "fixest")
+              "stringi", "stargazer", "lubridate", "todor", "stringr", "fixest", 
+              "tidyverse","lmtest", "fixest", "texreg", "sandwich","xtable", 
+              "knitr", "kableExtra")
+
 lapply(libraries, function(x) if (!(x %in% installed.packages())) { 
   install.packages(x) })
 lapply(libraries, library, quietly = TRUE, character.only = TRUE)
 
-## 2.3 Define other data folders here -------------------------------------------
-# Please do not change. Run the code. 
+## 2.3 Define other data folders here ------------------------------------------
+# Please do not change. Just run the code. 
 path_data <- here::here("data")
 path_tables <- here::here("output/tables")
 path_figures <- here::here("output/figures")
-path_code <- here::here("code/")
+path_code <- here::here("code")
+path_output <- here::here("output/")
 
+## 2.4 Create subfolders -------------------------------------------------------
+# Please do not change. Just run the code. 
+if(dir.exists(path_output)!=TRUE){
+  dir.create(file.path(getwd(), "output"))
+}
+if(dir.exists(path_tables)!=TRUE){ 
+  dir.create(file.path(getwd(), "output", paste0("tables")))
+}
+if(dir.exists(path_figures)!=TRUE){
+  dir.create(file.path(getwd(), "output", paste0("figures")))
+}
+if(dir.exists(path_data)!=TRUE){
+  dir.create(file.path(getwd(), "data"))
+}
+       
 
 
 
@@ -79,17 +99,17 @@ path_code <- here::here("code/")
 ## 3.1 Retrieve data and generate main data set --------------------------------
 # The execution of the following code may take up to 1 min. 
 source(file = file.path(path_code, "GetDataset.R")) # load in GetDataset.R
-# Since eachdependent variables implies a different sample, we receive 6 main 
-# data sets, all bundled in "datasets". We save each sub data set to our 
-# \data\ folder. 
+# Since each dependent variables implies a different sample, we receive 6 main 
+# data sets, all bundled in "datasets". 
+# We save each sub data set to the \data folder.
 for (n in names(datasets)) write_dta(datasets[[n]], 
                                      sprintf(file.path(path_data,"%s.dta"), n))
 
 ## 3.2 Descriptive Statistics --------------------------------------------------
 # The Summary Statistics is generated and saved to our \output\tables folder. 
 source(file = file.path(path_code, "Descriptive.R")) # load in Descriptive.R
-
-
+# We save our Summary Statistics table as .tex document to \output\tables.
+write_file(tex_sumstat, file = paste0(path_tables,'/SummaryStatistics.tex'))
 
 
 

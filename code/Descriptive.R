@@ -171,7 +171,7 @@ tex_sumstat <- gsub("Dataset No." ,"\\textit{Dataset No.}  ",tex_sumstat ,fixed=
 tex_sumstat <- gsub("Employed" ,"\\\\[-1.8ex] \n Employed ",tex_sumstat ,fixed=TRUE)
 
 # remove irrelevant variables and dataframes from global console
-rm(i,sumstat_solo, main_vars, n)
+rm(i,sumstat_solo)
 
 
 

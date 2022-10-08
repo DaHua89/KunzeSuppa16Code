@@ -217,8 +217,8 @@ for (i in 1:length(main_vars)){
   currentvar <- main_vars[i] # current main variable (e.g main_vars[1] = "culture", main_vars[2] = "cinema" ...)
   allothermainvars <- main_vars[-(which(main_vars == currentvar))] # all other main variables except the current one 
   df_crop <- data_all %>% 
-    select(!allothermainvars) %>%   # exclude all other main variables (e.g. for data set "culture" exclude: "cinema", "sports", "social", "help" and "volunteer" )
-    drop_na(currentvar) # exclude all missing values of the current main variable 
+    select(!all_of(allothermainvars)) %>%   # exclude all other main variables (e.g. for data set "culture" exclude: "cinema", "sports", "social", "help" and "volunteer" )
+    drop_na(all_of(currentvar)) # exclude all missing values of the current main variable 
   datasets[[i]] <- df_crop # add to list "datasets"
   names(datasets)[i]<- paste0("d",currentvar) # rename entry of list 
 }
@@ -226,4 +226,5 @@ list2env( datasets , .GlobalEnv ) # create 6 dataframes from list "datasets"
 # remove irrelevant variables and dataframes from global console
 rm(df_crop, i, currentvar, allothermainvars, HL, 
    PEQUIV, PGEN, PL, PPATHL, universal, data_all) 
+
 

@@ -55,7 +55,7 @@ getMeans <- function(df) {
                           gather(variable, value) %>% 
                           group_by(variable) %>% summarise(`Mean` = mean(value, na.rm = TRUE))  %>%
                           mutate_if(is.numeric , specify_decimal) %>%
-                          slice(match(names, variable))) %>%
+                          dplyr::slice(match(names, variable))) %>%
     as.data.frame()
   names(s)[1] <- "Dataset No."
   names(s)[2] <- paste0("(", i, ")")

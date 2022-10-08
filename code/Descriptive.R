@@ -8,7 +8,26 @@ Data:       SOEP (v30, teaching version [DOI: 10.5684/soep.v30])
 Note:       Please refer to the MASTER.R file to run the present R script. 
 '
 
-## 1 Load sub- functions -------------------------------------------------------
+# 1 Load in data ---------------------------------------------------------------
+df=list()
+mains <- c("dculture", "dcinema", "dsports", "dsocial","dhelp", "dvolunteer")
+for( i in 1:length(mains)){
+  i <- mains[i]
+  if (exists(i)) {
+    print(paste("File", i, "successfully loaded."))
+  }else if (file.exists(file.path(getwd(), "data",paste0(i, ".dta")))){ 
+    df[[i]] <- read_dta(file = file.path(getwd(), "data",paste0(i, ".dta")))
+    print(paste("File", i, "successfully loaded."))
+  }else {
+    print(paste("File", i, "missing.Please run GetDataset.R first!"))
+  }
+  list2env( df , .GlobalEnv )
+}
+rm(df)
+
+
+
+# 2 Load sub- functions -------------------------------------------------------
 specify_decimal <- function(x) trimws(format(round(x, 3), nsmall=3))
 getMeans <- function(df) { 
   mainvars <- c("culture", "cinema", "sports", "social", "volunteer", "help") 
@@ -108,8 +127,8 @@ SetComma <- function(df){
 
 
 
-# 2. CREATE TABLES -------------------------------------------------------------
-## 2.1 Summary Statistics as .tex file -----------------------------------------
+# 3 CREATE TABLES -------------------------------------------------------------
+## 3.1 Summary Statistics as .tex file -----------------------------------------
 sumstat_solo <- lapply(datasets, getMeans)
 names(sumstat_solo) <- c(rep("",6))
 sumstat_our <- sumstat_solo %>% reduce(left_join, by = "Dataset No.")
@@ -153,6 +172,13 @@ tex_sumstat <- gsub("Employed" ,"\\\\[-1.8ex] \n Employed ",tex_sumstat ,fixed=T
 
 # remove irrelevant variables and dataframes from global console
 rm(i,sumstat_solo, main_vars, n)
+
+
+
+
+
+
+
 
 
 

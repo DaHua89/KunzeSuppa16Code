@@ -140,7 +140,9 @@ recoding <- function(df){
   return(df)
 }
 
-
+delete.na <- function(DF, n=0) {
+  DF[rowSums(is.na(DF)) <= n,]
+}
 
 
 # 2 Retrieve data --------------------------------------------------------------
@@ -191,7 +193,8 @@ universal <- PPATHL %>%
   left_join(HL) %>%
   left_join(PEQUIV) %>%
   arrange(pid, syear, hid) # order rows according to pid, syear and hid
-
+# Delete all rows with missing values for all merged-onto variables
+uiversal <- delete.na(universal, n = ncol(universal) - ncol(PPATHL)-1) # Up to 24-5-1 "NAs" are allowed in one row. If 24-5 "NAs" occur, the row is removed.
 
 
 

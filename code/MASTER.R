@@ -38,9 +38,13 @@ Notes:      - Please read the supplementary README.pdf file before running the c
 # 1 MANUAL SETUP ---------------------------------------------------------------
 # 1.1 Check your R version -----------------------------------------------------
 R.Version()$version.string
-# If your R version is < version 4.1.2, please update your R by uncommenting this 
-# next two lines of code: 
+# If your R version is < version 4.2.1, please update your R by uncommenting 
+# the following code: 
+# for Windows: 
 # require(installr) 
+# updateR()
+# for Mac: 
+# require(updateR) 
 # updateR()
 
 # 1.2 Define your working directory  -------------------------------------------
@@ -61,9 +65,8 @@ graphics.off()                # clear console
 ## 2.2 Install & load packages -------------------------------------------------
 # Please run the next 5 lines of code. 
 libraries = c("haven", "dplyr", "here", "labelled", "tidyr", "ggplot2", "Hmisc", 
-              "stringi", "stargazer", "lubridate", "todor", "stringr", "fixest", 
-              "tidyverse","lmtest", "fixest", "texreg", "sandwich","xtable", 
-              "knitr", "kableExtra")
+              "stringi", "stringr",  "tidyverse","lmtest", "fixest",  "knitr", 
+              "kableExtra","mice", "miceadds", "micemd") # lubridate, "sandwich" "texreg","xtable",
 
 lapply(libraries, function(x) if (!(x %in% installed.packages())) { 
   install.packages(x) })
@@ -71,11 +74,11 @@ lapply(libraries, library, quietly = TRUE, character.only = TRUE)
 
 ## 2.3 Define other data folders here ------------------------------------------
 # Please do not change. Just run the code. 
-path_data <- here::here("data")
-path_tables <- here::here("output/tables")
-path_figures <- here::here("output/figures")
-path_code <- here::here("code")
-path_output <- here::here("output/")
+path_data <- here::here(getwd(),"data")
+path_tables <- here::here(getwd(), "output/tables")
+path_figures <- here::here(getwd(), "output/figures")
+path_code <- here::here(getwd(),"code")
+path_output <- here::here(getwd(),"output/")
 
 ## 2.4 Create subfolders -------------------------------------------------------
 # Please do not change. Just run the code. 
@@ -110,6 +113,7 @@ for (n in names(datasets)) write_dta(datasets[[n]],
 source(file = file.path(path_code, "Descriptive.R")) # load in Descriptive.R
 # We save our Summary Statistics table as .tex document to \output\tables.
 write_file(tex_sumstat, file = paste0(path_tables,'/SummaryStatistics.tex'))
+tex_sumstat
 
 
 

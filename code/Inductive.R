@@ -34,8 +34,8 @@ rm(df)
 model1 <- fixest::feols(culture ~ # Interchange with cinema, sports, help ... 
                           UE + OLF  + age26_30 + age31_35 + 
                           age36_40 + age41_45 + age46_50 + age51_55 + age56_60 + 
-                          age61_65 + shock_partner + shock_child + shock_sepdiv_harm + 
-                          needcare + yearsedu + disabled_harm + married + child1 +  
+                          age61_65 + shock_partner + shock_child + shock_sepdiv + 
+                          needcare + yearsedu + disabled + married + child1 +  
                           child2 + child3plus + west | pid + syear,
                         cluster = ~ pid,
                         data = dculture)  # Interchange with dcinema, dsports, dhelp ... 
@@ -46,8 +46,8 @@ summary(model1)
 ### 3.2.1 pmm method, long format ----------------------------------------------
 covariates <- c('pid', 'UEPC', 'UEO', 'OLF', 'age26_30', 'age31_35',
                 'age36_40', 'age41_45' , 'age46_50' , 'age51_55' , 'age56_60' , 
-                'age61_65', 'shock_partner' , 'shock_child' , 'shock_sepdiv_harm' , 
-                'needcare' , 'yearsedu' , 'disabled_harm' , 'married' , 'child1' ,  
+                'age61_65', 'shock_partner' , 'shock_child' , 'shock_sepdiv' , 
+                'needcare' , 'yearsedu' , 'disabled' , 'married' , 'child1' ,  
                 'child2' , 'child3plus' , 'west' , 'syear')
 no_factor <- c("cid", "hid", "pid", "yearsedu", "age", "cinema")
 list1 <- lapply(dcinema[,-which(colnames(dcinema) %in% no_factor)], factor)
@@ -68,8 +68,8 @@ imp_list <- imp_long %>% complete('all') # extract five imputed datasets
 est <- imp_list %>% lapply(feols, fml = cinema ~ 
                           UEPC + UEO + OLF  + age26_30 + age31_35 + 
                           age36_40 + age41_45 + age46_50 + age51_55 + age56_60 + 
-                          age61_65 + shock_partner + shock_child + shock_sepdiv_harm + 
-                          needcare + yearsedu + disabled_harm + married + child1 +  
+                          age61_65 + shock_partner + shock_child + shock_sepdiv + 
+                          needcare + yearsedu + disabled + married + child1 +  
                           child2 + child3plus + west  | pid  + syear, 
                         cluster = ~pid) %>% mice::pool() 
 
@@ -82,8 +82,8 @@ est <- imp_list %>% lapply(feols, fml = cinema ~
 model2 <- fixest::feols(culture ~ # Interchange with cinema, sports, help ... 
                           UEPC + UEO + OLF  + age26_30 + age31_35 + 
                           age36_40 + age41_45 + age46_50 + age51_55 + age56_60 + 
-                          age61_65 + shock_partner + shock_child + shock_sepdiv_harm + 
-                          needcare + yearsedu + disabled_harm + married + child1 +  
+                          age61_65 + shock_partner + shock_child + shock_sepdiv + 
+                          needcare + yearsedu + disabled + married + child1 +  
                           child2 + child3plus + west  | pid  + syear, 
                         cluster = ~ pid, # for individual clustered standard errors
                         data = dculture)  # Interchange with dcinema, dsports, dhelp ...  

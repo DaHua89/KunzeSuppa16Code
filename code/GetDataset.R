@@ -187,15 +187,12 @@ PEQUIV <- read_dta(file = file.path('data/Stata/pequiv.dta'),
                                   "d11107" )) # used to generate variables 'child0', 'child1', 'child2', 'child3+', more info at: https://paneldata.org/soep-core/data/pequiv/d11107
 
 ## 2.1 Merge all variables from different data set to universal data set -------
-universal <- PPATHL %>% 
-  left_join(PL) %>%
+universal <- PL %>%
   left_join(PGEN) %>%
   left_join(HL) %>%
   left_join(PEQUIV) %>%
   arrange(pid, syear, hid) # order rows according to pid, syear and hid
 # Delete all rows with missing values for all merged-onto variables
-uiversal <- delete.na(universal, n = ncol(universal) - ncol(PPATHL)-1) # Up to 24-5-1 "NAs" are allowed in one row. If 24-5 "NAs" occur, the row is removed.
-
 
 
 # 3 Generate main datasets -----------------------------------------------------
@@ -221,7 +218,7 @@ for (i in 1:length(main_vars)){
   allothermainvars <- main_vars[-(which(main_vars == currentvar))] # all other main variables except the current one 
   df_crop <- data_all %>% 
     select(!all_of(allothermainvars)) %>%   # exclude all other main variables (e.g. for data set "culture" exclude: "cinema", "sports", "social", "help" and "volunteer" )
-    drop_na(all_of(currentvar)) # exclude all missing values of the current main variable 
+ #   drop_na(all_of(currentvar)) # exclude all missing values of the current main variable 
   datasets[[i]] <- df_crop # add to list "datasets"
   names(datasets)[i]<- paste0("d",currentvar) # rename entry of list 
 }

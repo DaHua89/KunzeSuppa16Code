@@ -59,9 +59,8 @@ pm[,'pid'] <- -2 # specify cluster variable pid
 pm['pid', 'pid'] <- 0 # (but not for itself)
 
 imp_long <- mice(dcinema_crop, predictorMatrix = pm, 
-                    defaultMethod = c('2l.pmm', '2l.pmm', 'polyreg', 'polr'), 
-                    seed=328,
-                    maxit = 5, m=5)
+                 method = '2l.pmm', seed=328,
+                 maxit = 5, m=5, blme_use=T, blme_args=list('fixef.prior'='normal'))
 
 imp_list <- imp_long %>% complete('all') # extract five imputed datasets
 

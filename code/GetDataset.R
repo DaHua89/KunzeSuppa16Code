@@ -32,7 +32,8 @@ renaming <- function(df){
                   shock_partner = "pld0148", 
                   shock_child = "pld0154", 
                   separated = "pld0145", 
-                  divorced = "pld0142")
+                  divorced = "pld0142",
+                  income = "hghinc")
   
   df <- df %>%  dplyr::rename(any_of(var_names))
   return(df)
@@ -79,6 +80,7 @@ recoding <- function(df){
                              needcare = replace(needcare, needcare <0, NA), # define negative values as missing values 
                              needcare = replace(needcare, needcare>1, 0),  # Yes(1); Otherwise (0)
                              west = replace(west, west==2, 0), # West(1); East(0)
+                             income = replace(income, income <0, NA),
                              child = replace(child, child<0, NA), # define negative values as missing values 
                              child0 = case_when(child == 0 ~ 1, 
                                                 child > 0 ~ 0), 
@@ -186,11 +188,17 @@ PEQUIV <- read_dta(file = file.path('data/Stata/pequiv.dta'),
                                   "l11102",   # variable 'west', more info at: https://paneldata.org/soep-core/datasets/pequiv/l11102
                                   "d11107" )) # used to generate variables 'child0', 'child1', 'child2', 'child3+', more info at: https://paneldata.org/soep-core/data/pequiv/d11107
 
+HGEN <- read_dta(file = file.path('data/Stata/hgen.dta'), 
+                 col_select = c('cid','hid', 'syear', # merging key variables 
+                                "hghinc" ))    # variable 'income', more info at: https://paneldata.org/soep-core/datasets/hgen/hghinc
+
 ## 2.1 Merge all variables from different data set to universal data set -------
 universal <- PL %>%
+  left_join(PPATHL) %>%
   left_join(PGEN) %>%
   left_join(HL) %>%
   left_join(PEQUIV) %>%
+  left_join(HGEN) %>%
   arrange(pid, syear, hid) # order rows according to pid, syear and hid
 # Delete all rows with missing values for all merged-onto variables
 
@@ -217,7 +225,7 @@ for (i in 1:length(main_vars)){
   currentvar <- main_vars[i] # current main variable (e.g main_vars[1] = "culture", main_vars[2] = "cinema" ...)
   allothermainvars <- main_vars[-(which(main_vars == currentvar))] # all other main variables except the current one 
   df_crop <- data_all %>% 
-    select(!all_of(allothermainvars)) %>%   # exclude all other main variables (e.g. for data set "culture" exclude: "cinema", "sports", "social", "help" and "volunteer" )
+    select(!all_of(allothermainvars)) # %>%   # exclude all other main variables (e.g. for data set "culture" exclude: "cinema", "sports", "social", "help" and "volunteer" )
  #   drop_na(all_of(currentvar)) # exclude all missing values of the current main variable 
   datasets[[i]] <- df_crop # add to list "datasets"
   names(datasets)[i]<- paste0("d",currentvar) # rename entry of list 
@@ -225,6 +233,6 @@ for (i in 1:length(main_vars)){
 list2env( datasets , .GlobalEnv ) # create 6 dataframes from list "datasets"
 # remove irrelevant variables and dataframes from global console
 rm(df_crop, i, currentvar, allothermainvars, HL, 
-   PEQUIV, PGEN, PL, PPATHL, universal, data_all) 
+   PEQUIV, PGEN, PL, PPATHL, universal) 
 
 

@@ -102,18 +102,20 @@ if(dir.exists(path_data)!=TRUE){
 ## 3.1 Retrieve data and generate main data set --------------------------------
 # The execution of the following code may take up to 1 min. 
 source(file = file.path(path_code, "GetDataset.R")) # load in GetDataset.R
-# Since each dependent variables implies a different sample, we receive 6 main 
-# data sets, all bundled in "datasets". 
-# We save each sub data set to the \data folder.
-for (n in names(datasets)) write_dta(datasets[[n]], 
-                                     sprintf(file.path(path_data,"%s.dta"), n))
+# We receive two datasets:
+# data_all := Not filtered for years, includes all years from the PL data set
+# data_main:= Filtered for survey years 1991 to 2011, as applied in Kunze & Suppa (2007) 
+# We save each data set to the \data folder.
+write_dta(data_all, file.path(path_data,"data_all.dta"))
+write_dta(data_main, file.path(path_data,"data_main.dta"))
+
 
 ## 3.2 Descriptive Statistics --------------------------------------------------
 # The Summary Statistics is generated and saved to our \output\tables folder. 
 source(file = file.path(path_code, "Descriptive.R")) # load in Descriptive.R
 # We save our Summary Statistics table as .tex document to \output\tables.
 write_file(tex_sumstat, file = paste0(path_tables,'/SummaryStatistics.tex'))
-tex_sumstat
+
 
 
 

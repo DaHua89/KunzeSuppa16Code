@@ -29,49 +29,61 @@ rm(df)
 
 ## Long: Till ------------------------------------------------------------------
 # 1 Crop data frame ------------------------------------------------------------
-# Later data_crop will be merged onto imputed data set 
-data_crop <- data_main %>% select(pid, cid, syear, culture, cinema, sports, social, volunteer, help)
-# For the imputation we will work with data_imp of which the following variables are excluded: culture, cinema, sports, social, volunteer, help, hid, cid, child, age, income
-data_imp <- data_main %>% select(!c(culture, cinema, sports, social, volunteer, help, hid, cid, child, age, income))
-names(data_imp)
+# 1.1 Define things and convert variables to factors and numerics -------------
 covariates <- c('pid', 'UEPC', 'UEO', 'OLF', 'age26_30', 'age31_35',
                 'age36_40', 'age41_45' , 'age46_50' , 'age51_55' , 'age56_60' , 
                 'age61_65', 'shock_partner' , 'shock_child' , 'shock_sepdiv' , 
                 'needcare' , 'yearsedu' , 'disabled' , 'married' , 'child1' ,  
                 'child2' , 'child3plus' , 'west' , 'syear')
-no_factor <- c("pid", "yearsedu",  'syear')
-list1 <- lapply(data_imp[,-which(colnames(data_imp) %in% no_factor)], factor)
-data_imp <- data.frame(list1, data_imp[,no_factor])
-data_imp <- data_imp %>% select(all_of(covariates))
-str(data_imp)
-pm <- make.predictorMatrix(data_imp)
+outcomes <- c('culture', 'cinema', 'sports', 'help', 'volunteer', 'social')
+years <- c(1992, 1994, 1996, 1997, 2001, 2005, 2007, 2009, 2011)
+no_factor <- c("cid", "hid", "pid", "yearsedu", "age", all_of(outcomes), 'syear')
+
+list1 <- lapply(data_main[,-which(colnames(data_main) %in% no_factor)], factor)
+list2 <- lapply(data_main[,which(colnames(data_main) %in% no_factor)], as.numeric)
+data2 <- data.frame(list1, list2)
+
+# 1.2 Subset set data -------------------
+data3 <- data2 %>% select(all_of(covariates), all_of(outcomes))
+data3[!data3$syear%in% years, outcomes] <- NA # make sure outcomes are NA in non-selected years
+data4 <- data3 %>% filter(syear %in% years) # if we want only the selected years
+
+# 1.3 Predictor matrix and imputation -----------------------
+pm <- make.predictorMatrix(data3)
 pm[,'pid'] <- -2 # specify cluster variable pid 
 pm['pid', 'pid'] <- 0 # (but not for itself)
-pm
+pm[,'syear'] <- 0 # not sure here, but for now don't include syear as a predictor (gave a warning message if included as a predictor when it was a factor)
+pm[outcomes,] <- 0 # if outcomes are not to be imputed
+data5 <- drop_na(data4, all_of(outcomes)) # if we want to drop the outcome missings
 
 #install.packages("blme")
 library("blme")
 # old version: 
-imp_long_old <- mice(data_imp, predictorMatrix = pm, 
-                     defaultMethod = c('2l.pmm', '2l.pmm', 'polyreg', 'polr'), 
-                     seed=328,
-                     maxit = 5, m=5)
+# imp_long_old <- mice(data3, predictorMatrix = pm, 
+#                     defaultMethod = c('2l.pmm', '2l.pmm', 'polyreg', 'polr'), 
+#                     seed=328,
+#                     maxit = 5, m=5)
 # new version: 
-imp_long_new <- mice(data_imp, predictorMatrix = pm, 
+start.time <- Sys.time()
+imp_long_new <- mice(data5, predictorMatrix = pm, 
                      method = '2l.pmm', seed=328,
                      maxit = 5, m=5, blme_use=T, blme_args=list('fixef.prior'='normal'))
-# new version: 
-imp_list <- imp_long %>% complete('all') # extract five imputed datasets
+end.time <- Sys.time()
+time.taken <- end.time - start.time
+time.taken
 
-' # this code is to be changed: 
-est <- imp_list %>% lapply(feols, fml = cinema ~ 
-                             UEPC + UEO + OLF  + age26_30 + age31_35 + 
-                             age36_40 + age41_45 + age46_50 + age51_55 + age56_60 + 
-                             age61_65 + shock_partner + shock_child + shock_sepdiv + 
-                             needcare + yearsedu + disabled + married + child1 +  
-                             child2 + child3plus + west  | pid  + syear, 
-                           cluster = ~pid) %>% mice::pool() 
-' 
+# new version: 
+imp_list <- imp_long_new %>% complete('all') # extract five imputed datasets
+
+# 1.4 Estimation results ---------------------------------
+est <- imp_list %>% lapply(feols, fml = cinema ~ # use here the dependent variable you want
+                          UEPC + UEO + OLF  + age26_30 + age31_35 + 
+                          age36_40 + age41_45 + age46_50 + age51_55 + age56_60 + 
+                          age61_65 + shock_partner + shock_child + shock_sepdiv + 
+                          needcare + yearsedu + disabled + married + child1 +  
+                          child2 + child3plus + west  | pid  + syear, cluster = ~pid) %>%
+  pool() 
+summary(est)
 
 # Long: Isabell ---------------------------------------------------------------
 ## 1 Set up data frame: remove irrelevant variables + adjust variable classes

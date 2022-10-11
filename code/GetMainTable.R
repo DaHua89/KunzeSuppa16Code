@@ -11,7 +11,7 @@ Note:       Please refer to the MASTER.R file to run the present R script.
 # 1 Load and subset data -------------------------------------------------------
 ## 1.1 Load in data ------------------------------------------------------------
 df=list()
-toload <- c("data_all", "data_main")
+toload <- c("our_dataset")
 for( i in 1:length(toload)){
   i <- toload[i]
   if (exists(i)) {
@@ -32,7 +32,7 @@ main_vars <- c("culture", "cinema", "sports", "social","volunteer", "help")
 for (i in 1:length(main_vars)){
   currentvar <- main_vars[i] # current main variable (e.g main_vars[1] = "culture", main_vars[2] = "cinema" ...)
   allothermainvars <- main_vars[-(which(main_vars == currentvar))] # all other main variables except the current one 
-  df_crop <- data_main %>% 
+  df_crop <- our_dataset %>% 
     select(!all_of(allothermainvars))# %>% # exclude all other main variables (e.g. for data set "culture" exclude: "cinema", "sports", "social", "help" and "volunteer" )
   #drop_na(all_of(currentvar)) # exclude all missing values of the current main variable 
   df_crop <- df_crop[complete.cases(df_crop),] # only include complete cases! (remove all rows with NAs)
@@ -43,7 +43,7 @@ list2env( datasets , .GlobalEnv ) # create 6 dataframes from list "datasets"
 rm(df_crop, i, currentvar, allothermainvars)
 
 ## 1.3 Complete case dataset ---------------------------------------------------
-data <- data_main[complete.cases(data_main),]
+data <- our_dataset[complete.cases(our_dataset),]
 # Merge all 6 main datasets
 # data <- dculture %>% full_join(dcinema) %>% full_join(dsports) %>% full_join(dsocial) %>%
 #  full_join(dvolunteer) %>% full_join(dhelp)
@@ -326,6 +326,7 @@ for (i in 4:6){
 # Create .tex files 
 model2_tableA <- GetTexfile(model2_tableA)
 model2_tableB <- getTexfile(model2_tableB)
+
 
 
 

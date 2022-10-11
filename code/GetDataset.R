@@ -64,14 +64,15 @@ labeling <- function(df){
 # defines negatives values as missing values. 
 # The function returns a modified dataframe. 
 recoding <- function(df){
-  df <- df %>% 
-    suppressWarnings(mutate_at(c("culture", "cinema", "sports", "social", "help", "volunteer"),
-              funs(ifelse(syear %in% c(1985, 1986, 1988, 1992, 1994, 1996, 1997, 2001, 2005, 2007, 2009, 2011),.,NA))))%>% # set all entries for our 6 main variables to NA, if syear is not in the waves: 85, 86, 88, 92, 94, 96, 97, 99, 01, 05, 07, 09, 11
+  df_main <- df %>% 
+    mutate_at(c("culture", "cinema", "sports", "social", "help", "volunteer"),
+              list(~ifelse(syear %in% c(1985, 1986, 1988, 1992, 1994, 1996, 1997, 2001, 2005, 2007, 2009, 2011),.,NA)))%>% # set all entries for our 6 main variables to NA, if syear is not in the waves: 85, 86, 88, 92, 94, 96, 97, 99, 01, 05, 07, 09, 11
     # Modifications on our 6 main variables 
-    suppressWarnings(mutate_at(c("culture", "cinema", "sports", "social", "help", "volunteer"),
-              funs(recode(., '2'=4, '3'=3, '4'=2, '5'=1)))) %>% # recode all variables' (.) values, whereas 2 becomes 4, 4 becomes 2 and 5 becomes 1 
-    suppressWarnings(mutate_at(c("culture", "cinema", "sports", "social", "help", "volunteer"),
-              funs(ifelse(.<0, NA, .))))  # recodes all variables (.) to NA, if they take values below zero (.<0)
+    mutate_at(c("culture", "cinema", "sports", "social", "help", "volunteer"),
+              list(~recode(., '2'=4, '3'=3, '4'=2, '5'=1))) %>% # recode all variables' (.) values, whereas 2 becomes 4, 4 becomes 2 and 5 becomes 1 
+    mutate_at(c("culture", "cinema", "sports", "social", "help", "volunteer"),
+              list(~ifelse(.<0, NA, .)))  # recodes all variables (.) to NA, if they take values below zero (.<0)
+
   df <- df %>% select(!c("culture", "cinema", "sports", "social", "help", "volunteer")) %>% 
     left_join(df_main) 
   

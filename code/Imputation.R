@@ -10,7 +10,7 @@ Note:       Please refer to the MASTER.R file to run the present R script.
 
 # 1 Load in data ---------------------------------------------------------------
 df=list()
-toload <- c("data_all", "data_main")
+toload <- c("our_dataset")
 for( i in 1:length(toload)){
   i <- toload[i]
   if (exists(i)) {
@@ -39,8 +39,8 @@ outcomes <- c('culture', 'cinema', 'sports', 'help', 'volunteer', 'social')
 years <- c(1992, 1994, 1996, 1997, 2001, 2005, 2007, 2009, 2011)
 no_factor <- c("cid", "hid", "pid", "yearsedu", "age", all_of(outcomes), 'syear')
 
-list1 <- lapply(data_main[,-which(colnames(data_main) %in% no_factor)], factor)
-list2 <- lapply(data_main[,which(colnames(data_main) %in% no_factor)], as.numeric)
+list1 <- lapply(our_dataset[,-which(colnames(our_dataset) %in% no_factor)], factor)
+list2 <- lapply(our_dataset[,which(colnames(our_dataset) %in% no_factor)], as.numeric)
 data2 <- data.frame(list1, list2)
 
 ## 2.2 Subset set data ---------------------------------------------------------
@@ -57,18 +57,19 @@ pm[,'syear'] <- 0 # not sure here, but for now don't include syear as a predicto
 pm
 #data5 <- drop_na(data4, all_of(outcomes)) # if we want to drop the outcome missings
 
-#install.packages("blme")
-library("blme")
-start.time <- Sys.time()
-imp_long_new <- mice(data4, predictorMatrix = pm, 
-                     method = '2l.pmm', seed=328,
-                     maxit = 2, m=2, blme_use=T, blme_args=list('fixef.prior'='normal'))
-end.time <- Sys.time()
-time.taken <- end.time - start.time
-time.taken # Time difference of 8.549886 mins
-
-# new version: 
-imp_list <- imp_long_new %>% complete('all') # extract five imputed datasets
+if (!exists("imp_long")){ 
+  library("blme")
+  start.time <- Sys.time()
+  imp_long <- mice(data4, predictorMatrix = pm, 
+                   method = '2l.pmm', seed = 328,
+                   maxit = 5, m = 5, blme_use=T, 
+                   blme_args=list('fixef.prior'='normal'))
+  
+  end.time <- Sys.time()
+  time.taken <- end.time - start.time
+  save(imp_long, file = "imp_long.RData")
+} 
+imp_list <- imp_long %>% complete('all') # extract five imputed datasets
 
 
 
@@ -103,8 +104,4 @@ estimateModel2_imp <- lapply(depvars, function(var) {
 names(estimateModel2_imp) <- depvars
 # Test: 
 # estimateModel2_imp[[1]]
-
-
-
-
 

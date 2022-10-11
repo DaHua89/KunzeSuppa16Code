@@ -106,9 +106,7 @@ source(file = file.path(path_code, "GetDataset.R")) # load in GetDataset.R
 # data_all := Not filtered for years, includes all years from the PL data set
 # data_main:= Filtered for survey years 1991 to 2011, as applied in Kunze & Suppa (2007) 
 # We save each data set to the \data folder.
-write_dta(data_all, file.path(path_data,"data_all.dta"))
-write_dta(data_main, file.path(path_data,"data_main.dta"))
-
+write_dta(our_dataset, file.path(path_data,"our_dataset.dta"))
 
 ## 3.2 Descriptive Statistics --------------------------------------------------
 # The Summary Statistics is generated and saved to our \output\tables folder. 
@@ -130,6 +128,5 @@ write_file(model1_tableA, file = paste0(path_tables,'/Model1_PanelA.tex'))
 write_file(model1_tableB, file = paste0(path_tables,'/Model1_PanelB.tex'))
 write_file(model2_tableA, file = paste0(path_tables,'/Model2_PanelA.tex'))
 write_file(model2_tableB, file = paste0(path_tables,'/Model2_PanelB.tex'))
-
 
 

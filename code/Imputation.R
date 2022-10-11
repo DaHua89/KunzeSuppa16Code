@@ -57,19 +57,18 @@ pm[,'syear'] <- 0 # not sure here, but for now don't include syear as a predicto
 pm
 #data5 <- drop_na(data4, all_of(outcomes)) # if we want to drop the outcome missings
 
-#install.packages("blme")
-library("blme")
-start.time <- Sys.time()
-imp_long <- mice(data4, predictorMatrix = pm, 
-                     method = '2l.pmm', seed = 328,
-                     maxit = 5, m = 5, blme_use=T, 
-                     blme_args=list('fixef.prior'='normal'))
-
-end.time <- Sys.time()
-time.taken <- end.time - start.time
-time.taken # Time difference of 8.549886 mins
-
-# new version: 
+if (!exists("imp_long")){ 
+  library("blme")
+  start.time <- Sys.time()
+  imp_long <- mice(data4, predictorMatrix = pm, 
+                   method = '2l.pmm', seed = 328,
+                   maxit = 5, m = 5, blme_use=T, 
+                   blme_args=list('fixef.prior'='normal'))
+  
+  end.time <- Sys.time()
+  time.taken <- end.time - start.time
+  time.taken 
+} 
 imp_list <- imp_long %>% complete('all') # extract five imputed datasets
 
 

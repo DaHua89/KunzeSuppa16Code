@@ -86,6 +86,7 @@ est <- imp_list %>%
                             pid + syear, ..cluster = ~ pid, ..lhs = var)) %>% 
   pool() %>% summary() %>% as.data.frame()
 })
+names(estimateModel1_imp) <- depvars
 
 ### 1.4.2  for Model 2 --------------------------------------------------------- 
 depvars <- c("culture", "cinema", "sports", "social", "volunteer", "help")
@@ -99,6 +100,7 @@ estimateModel2_imp <- lapply(depvars, function(var) {
                               pid + syear, ..cluster = ~ pid, ..lhs = var)) %>% 
     pool() %>% summary() %>% as.data.frame()
 })
+names(estimateModel2_imp) <- depvars
 # Test: 
 # estimateModel2_imp[[1]]
 

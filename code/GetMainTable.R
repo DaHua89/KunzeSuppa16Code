@@ -222,7 +222,7 @@ for (i in 4:6){
 
 # Create .tex files 
 model1_tableA <- GetTexfile(model1_tableA)
-model1_tableB <- getTexfile(model1_tableB)
+model1_tableB <- GetTexfile(model1_tableB)
 
 
 
@@ -325,7 +325,7 @@ for (i in 4:6){
 
 # Create .tex files 
 model2_tableA <- GetTexfile(model2_tableA)
-model2_tableB <- getTexfile(model2_tableB)
+model2_tableB <- GetTexfile(model2_tableB)
 
 
 

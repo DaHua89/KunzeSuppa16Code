@@ -60,7 +60,7 @@ pm
 #install.packages("blme")
 library("blme")
 start.time <- Sys.time()
-imp_long_new <- mice(data4, predictorMatrix = pm, 
+imp_long <- mice(data4, predictorMatrix = pm, 
                      method = '2l.pmm', seed = 328,
                      maxit = 5, m = 5, blme_use=T, 
                      blme_args=list('fixef.prior'='normal'))
@@ -70,7 +70,7 @@ time.taken <- end.time - start.time
 time.taken # Time difference of 8.549886 mins
 
 # new version: 
-imp_list <- imp_long_new %>% complete('all') # extract five imputed datasets
+imp_list <- imp_long %>% complete('all') # extract five imputed datasets
 
 
 

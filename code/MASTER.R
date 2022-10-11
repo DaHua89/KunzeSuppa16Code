@@ -108,7 +108,6 @@ source(file = file.path(path_code, "GetDataset.R")) # load in GetDataset.R
 # We save each data set to the \data folder.
 write_dta(our_dataset, file.path(path_data,"our_dataset.dta"))
 
-
 ## 3.2 Descriptive Statistics --------------------------------------------------
 # The Summary Statistics is generated and saved to our \output\tables folder. 
 source(file = file.path(path_code, "Descriptive.R")) # load in Descriptive.R

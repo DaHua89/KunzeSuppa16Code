@@ -67,7 +67,7 @@ if (!exists("imp_long")){
   
   end.time <- Sys.time()
   time.taken <- end.time - start.time
-  time.taken 
+  save(imp_long, file = "imp_long.RData")
 } 
 imp_list <- imp_long %>% complete('all') # extract five imputed datasets
 

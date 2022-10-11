@@ -102,7 +102,7 @@ imputerMatrix[,imputerVars] <- 1
 imputerMatrix
 # Imputed Matrix: Specify variables with missingness to be imputed. 
 imputedMatrix <- pm
-imputedOnlyVars <- c("shock_sepdiv", "needcare", "yearsedu","married", "disabled", "shock_child", "shock_partner")
+imputedVars <- c("shock_sepdiv", "needcare", "yearsedu","married", "disabled", "shock_child", "shock_partner")
 imputedMatrix[imputedVars,] <- 1
 imputedMatrix
 # Full Predictor Matrix: rows are imputed variables; cols are imputer variables

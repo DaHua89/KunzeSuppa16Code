@@ -11,7 +11,7 @@ Note:       Please refer to the MASTER.R file to run the present R script.
 # 1 Load & subset data ---------------------------------------------------------
 ## 1.1 Load in data ------------------------------------------------------------
 df=list()
-toload <- c("data_all", "data_main")
+toload <- c("our_dataset")
 for( i in 1:length(toload)){
 i <- toload[i]
   if (exists(i)) {
@@ -31,7 +31,7 @@ main_vars <- c("culture", "cinema", "sports", "social","volunteer", "help")
 for (i in 1:length(main_vars)){
   currentvar <- main_vars[i] # current main variable (e.g main_vars[1] = "culture", main_vars[2] = "cinema" ...)
   allothermainvars <- main_vars[-(which(main_vars == currentvar))] # all other main variables except the current one 
-  df_crop <- data_main %>% 
+  df_crop <- our_dataset %>% 
     select(!all_of(allothermainvars))# %>% # exclude all other main variables (e.g. for data set "culture" exclude: "cinema", "sports", "social", "help" and "volunteer" )
     #drop_na(all_of(currentvar)) # exclude all missing values of the current main variable 
   df_crop <- df_crop[complete.cases(df_crop),] # only include complete cases! (remove all rows with NAs)

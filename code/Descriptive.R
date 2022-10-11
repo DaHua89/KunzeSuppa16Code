@@ -8,24 +8,38 @@ Data:       SOEP (v30, teaching version [DOI: 10.5684/soep.v30])
 Note:       Please refer to the MASTER.R file to run the present R script. 
 '
 
-# 1 Load in data ---------------------------------------------------------------
+# 1 Load & subset data ---------------------------------------------------------
+## 1.1 Load in data ------------------------------------------------------------
 df=list()
-mains <- c("dculture", "dcinema", "dsports", "dsocial","dhelp", "dvolunteer")
-for( i in 1:length(mains)){
-  i <- mains[i]
+toload <- c("data_all", "data_main")
+for( i in 1:length(toload)){
+i <- toload[i]
   if (exists(i)) {
     print(paste("File", i, "successfully loaded."))
   }else if (file.exists(file.path(getwd(), "data",paste0(i, ".dta")))){ 
     df[[i]] <- read_dta(file = file.path(getwd(), "data",paste0(i, ".dta")))
     print(paste("File", i, "successfully loaded."))
   }else {
-    print(paste("File", i, "missing.Please run GetDataset.R first!"))
+    print(paste("File", i, "missing. Please run GetDataset.R first!"))
   }
   list2env( df , .GlobalEnv )
 }
 rm(df)
-
-
+## 1.2 Subsetting data ---------------------------------------------------------
+datasets <- list()
+main_vars <- c("culture", "cinema", "sports", "social","volunteer", "help")
+for (i in 1:length(main_vars)){
+  currentvar <- main_vars[i] # current main variable (e.g main_vars[1] = "culture", main_vars[2] = "cinema" ...)
+  allothermainvars <- main_vars[-(which(main_vars == currentvar))] # all other main variables except the current one 
+  df_crop <- data_main %>% 
+    select(!all_of(allothermainvars))# %>% # exclude all other main variables (e.g. for data set "culture" exclude: "cinema", "sports", "social", "help" and "volunteer" )
+    #drop_na(all_of(currentvar)) # exclude all missing values of the current main variable 
+  df_crop <- df_crop[complete.cases(df_crop),] # only include complete cases! (remove all rows with NAs)
+  datasets[[i]] <- df_crop # add to list "datasets"
+  names(datasets)[i]<- paste0("d",currentvar) # rename entry of list 
+}
+list2env( datasets , .GlobalEnv ) # create 6 dataframes from list "datasets"
+rm(df_crop, i, currentvar, allothermainvars)
 
 # 2 Load sub- functions -------------------------------------------------------
 specify_decimal <- function(x) trimws(format(round(x, 3), nsmall=3))
@@ -169,9 +183,12 @@ tex_sumstat <- gsub("\\bottomrule" ,"\\hline \\hline \\\\[-2ex]  ",tex_sumstat ,
 tex_sumstat <- gsub("\\toprule" ,"\\hline \\hline \\\\[-2ex]  ",tex_sumstat ,fixed=TRUE)
 tex_sumstat <- gsub("Dataset No." ,"\\textit{Dataset No.}  ",tex_sumstat ,fixed=TRUE)
 tex_sumstat <- gsub("Employed" ,"\\\\[-1.8ex] \n Employed ",tex_sumstat ,fixed=TRUE)
-
+tex_sumstat
 # remove irrelevant variables and dataframes from global console
-rm(i,sumstat_solo)
+rm(i,sumstat_solo, sumstat_all, sumstat_orig, sumstat_our)
+
+# Test: 
+mean(dculture$UEPC) + mean(dculture$UEO) == mean(dculture$UE)
 
 
 

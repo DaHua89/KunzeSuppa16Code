@@ -116,6 +116,20 @@ source(file = file.path(path_code, "Descriptive.R")) # load in Descriptive.R
 # We save our Summary Statistics table as .tex document to \output\tables.
 write_file(tex_sumstat, file = paste0(path_tables,'/SummaryStatistics.tex'))
 
+## 3.3 Imputation of missing values  -------------------------------------------
+source(file = file.path(path_code, "Imputation.R")) # load in Descriptive.R
+# The lists: estimateModel1_imp and estimateModel2_imp are returned AND needed for 3.4
+
+## 4.4 Create main table -------------------------------------------
+# This table lists and compares the regression results of Kunze and Suppa (2007), 
+# our reproduction regression analysis without imputed missing values (reproduction) 
+# and reproduction regression analysis with imputed missing values (extension).
+source(file = file.path(path_code, "GetMainTable.R")) # load in Descriptive.R
+# We save our Summary of Regression outputs table as .tex document to \output\tables.
+write_file(model1_tableA, file = paste0(path_tables,'/Model1_PanelA.tex'))
+write_file(model1_tableB, file = paste0(path_tables,'/Model1_PanelB.tex'))
+write_file(model2_tableA, file = paste0(path_tables,'/Model2_PanelA.tex'))
+write_file(model2_tableB, file = paste0(path_tables,'/Model2_PanelB.tex'))
 
 
 

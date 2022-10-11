@@ -142,7 +142,7 @@ recoding <- function(df){
     mutate(UEO = UE-UEPC) %>% # UEO variable construction
     mutate(UEPC = replace(UEPC, OLF == 1, 0)) %>% # To correct for individuals who are OLF and also lost their job because of plant closure
     mutate(UEO = replace(UEO, OLF == 1, 0)) # To correct for individuals who are OLF and also lost their job because of other reasons
-    return(df)
+  return(df)
 }
 
 
@@ -188,8 +188,8 @@ PEQUIV <- read_dta(file = file.path('data/Stata/pequiv.dta'),
                                   "l11102",   # variable 'west', more info at: https://paneldata.org/soep-core/datasets/pequiv/l11102
                                   "d11107" )) # used to generate variables 'child0', 'child1', 'child2', 'child3+', more info at: https://paneldata.org/soep-core/data/pequiv/d11107
 HGEN <- read_dta(file = file.path('data/Stata/hgen.dta'), 
-                  col_select = c('cid','hid', 'syear', # merging key variables 
-                                 "hghinc" ))    # variable 'income', more info at: https://paneldata.org/soep-core/datasets/hgen/hghinc
+                 col_select = c('cid','hid', 'syear', # merging key variables 
+                                "hghinc" ))    # variable 'income', more info at: https://paneldata.org/soep-core/datasets/hgen/hghinc
 
 
 
@@ -220,6 +220,5 @@ data_main <- data_all %>% filter(syear %in% 1991:2011)
 
 
 # remove irrelevant variables and dataframes from global console
-rm( HL, PEQUIV, PGEN, PL, PPATHL, universal) 
-
+rm( HL, PEQUIV, PGEN, PL, PPATHL, universal, HGEN) 
 

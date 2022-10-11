@@ -64,7 +64,7 @@ labeling <- function(df){
 # defines negatives values as missing values. 
 # The function returns a modified dataframe. 
 recoding <- function(df){
-  df_main <- df %>% 
+  df <- df %>% 
     suppressWarnings(mutate_at(c("culture", "cinema", "sports", "social", "help", "volunteer"),
               funs(ifelse(syear %in% c(1985, 1986, 1988, 1992, 1994, 1996, 1997, 2001, 2005, 2007, 2009, 2011),.,NA))))%>% # set all entries for our 6 main variables to NA, if syear is not in the waves: 85, 86, 88, 92, 94, 96, 97, 99, 01, 05, 07, 09, 11
     # Modifications on our 6 main variables 

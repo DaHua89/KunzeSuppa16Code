@@ -205,18 +205,16 @@ universal <- PL %>%
 
 # 3 Generate main datasets -----------------------------------------------------
 ## 3.1 Apply filters -----------------------------------------------------------
-data_all <- universal %>% 
+our_dataset <- universal %>% 
   drop_na(syear, pid) %>% # exclude all observations with missing values in syear and pid
   mutate( gebjahr = replace(gebjahr, gebjahr<0, NA), # convert negative gebjahr to missing values 
           age = case_when(!is.na(gebjahr) ~ syear - gebjahr), # define age variable as:= sampleyear(year) - year born(gebjahr)
           age = replace (age, age<0, NA)) %>%  # exclude values where syear > gebjahr 
   filter(age>=21, age<=64,       # (1) Filter: Age between 21 and 64
-         l11102 %in% c(1,2)) %>% # (2) Filter: Place of living is Germany (either West:1 or East:2)  
+         l11102 %in% c(1,2),     # (2) Filter: Place of living is Germany (either West:1 or East:2) 
+         syear %in% c(1992, 1994, 1996, 1997, 2001, 2005, 2007, 2009, 2011)) %>%
   renaming() %>% 
-  recoding()
-
-## 3.2 Filter for the years 1991 to 2011 ---------------------------------------
-data_main <- data_all %>% filter(syear %in% 1991:2011) 
+  recoding() 
 
 
 # remove irrelevant variables and dataframes from global console

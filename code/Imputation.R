@@ -30,7 +30,7 @@ rm(df)
 
 # 2 Imputing missing values - long format  -------------------------------------
 ## 2.1 Define things and convert variables to factors and numerics -------------
-covariates <- c('pid', 'UEPC', 'UEO', 'OLF', 'UE', 'age26_30', 'age31_35',
+covariates <- c('pid', 'UE', 'UEPC', 'UEO', 'OLF', 'UE', 'age26_30', 'age31_35',
                 'age36_40', 'age41_45' , 'age46_50' , 'age51_55' , 'age56_60' , 
                 'age61_65', 'shock_partner' , 'shock_child' , 'shock_sepdiv' , 
                 'needcare' , 'yearsedu' , 'disabled' , 'married' , 'child1' ,  

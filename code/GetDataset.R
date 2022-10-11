@@ -32,8 +32,7 @@ renaming <- function(df){
                   shock_partner = "pld0148", 
                   shock_child = "pld0154", 
                   separated = "pld0145", 
-                  divorced = "pld0142",
-                  income = "hghinc")
+                  divorced = "pld0142")
   
   df <- df %>%  dplyr::rename(any_of(var_names))
   return(df)
@@ -65,11 +64,13 @@ labeling <- function(df){
 # The function returns a modified dataframe. 
 recoding <- function(df){
   df_main <- df %>% 
+    suppressWarnings(mutate_at(c("culture", "cinema", "sports", "social", "help", "volunteer"),
+              funs(ifelse(syear %in% c(1985, 1986, 1988, 1992, 1994, 1996, 1997, 2001, 2005, 2007, 2009, 2011),.,NA))))%>% # set all entries for our 6 main variables to NA, if syear is not in the waves: 85, 86, 88, 92, 94, 96, 97, 99, 01, 05, 07, 09, 11
     # Modifications on our 6 main variables 
-    mutate_at(c("culture", "cinema", "sports", "social", "help", "volunteer"),
-              funs(recode(., '2'=4, '3'=3, '4'=2, '5'=1))) %>% # recode all variables' (.) values, whereas 2 becomes 4, 4 becomes 2 and 5 becomes 1 
-    mutate_at(c("culture", "cinema", "sports", "social", "help", "volunteer"),
-              funs(ifelse(.<0, NA, .)))  # recodes all variables (.) to NA, if they take values below zero (.<0)
+    suppressWarnings(mutate_at(c("culture", "cinema", "sports", "social", "help", "volunteer"),
+              funs(recode(., '2'=4, '3'=3, '4'=2, '5'=1)))) %>% # recode all variables' (.) values, whereas 2 becomes 4, 4 becomes 2 and 5 becomes 1 
+    suppressWarnings(mutate_at(c("culture", "cinema", "sports", "social", "help", "volunteer"),
+              funs(ifelse(.<0, NA, .))))  # recodes all variables (.) to NA, if they take values below zero (.<0)
   df <- df %>% select(!c("culture", "cinema", "sports", "social", "help", "volunteer")) %>% 
     left_join(df_main) 
   
@@ -80,7 +81,6 @@ recoding <- function(df){
                              needcare = replace(needcare, needcare <0, NA), # define negative values as missing values 
                              needcare = replace(needcare, needcare>1, 0),  # Yes(1); Otherwise (0)
                              west = replace(west, west==2, 0), # West(1); East(0)
-                             income = replace(income, income <0, NA),
                              child = replace(child, child<0, NA), # define negative values as missing values 
                              child0 = case_when(child == 0 ~ 1, 
                                                 child > 0 ~ 0), 
@@ -130,21 +130,18 @@ recoding <- function(df){
                              age46_50 = ifelse(age >= 46 & age <=50, 1, 0),  
                              age51_55 = ifelse(age >= 51 & age <=55, 1, 0),  
                              age56_60 = ifelse(age >= 56 & age <=60, 1, 0),  
-                             age61_65 = ifelse(age >= 61 & age <=65, 1, 0), 
-                             age66_more = ifelse(age >= 66, 1, 0)) %>%
+                             age61_65 = ifelse(age >= 61 & age <=65, 1, 0)) %>%
     select(!c(disabled_degree, separated, divorced, gebjahr)) %>% # remove construction variables
-    mutate(UEPC = as.numeric(EP %in% c(5) & UEPC %in% c(1)), # UEPC variable construction
+    mutate(UEPC = as.numeric(EP ==5 & UEPC ==1), # UEPC variable construction
            EP = as.numeric(EP %in% c(1, 2, 3, 4, 6)), # EP variable construction
            OLF = as.numeric(OLF %in% c(1:5, 7:10, 13))) %>% # OLF variable construction
     mutate(UE = 1-OLF-EP) %>% # UE variable construction
     mutate(UEO = UE-UEPC) %>% # UEO variable construction
-    mutate(UEO = replace(UEO, OLF==1, 0)) # To correct for individuals who are OLF and also lost their job because of plant closure
-  return(df)
+    mutate(UEPC = replace(UEPC, OLF == 1, 0)) %>% # To correct for individuals who are OLF and also lost their job because of plant closure
+    mutate(UEO = replace(UEO, OLF == 1, 0)) # To correct for individuals who are OLF and also lost their job because of other reasons
+    return(df)
 }
 
-delete.na <- function(DF, n=0) {
-  DF[rowSums(is.na(DF)) <= n,]
-}
 
 
 # 2 Retrieve data --------------------------------------------------------------
@@ -188,19 +185,13 @@ PEQUIV <- read_dta(file = file.path('data/Stata/pequiv.dta'),
                                   "l11102",   # variable 'west', more info at: https://paneldata.org/soep-core/datasets/pequiv/l11102
                                   "d11107" )) # used to generate variables 'child0', 'child1', 'child2', 'child3+', more info at: https://paneldata.org/soep-core/data/pequiv/d11107
 
-HGEN <- read_dta(file = file.path('data/Stata/hgen.dta'), 
-                 col_select = c('cid','hid', 'syear', # merging key variables 
-                                "hghinc" ))    # variable 'income', more info at: https://paneldata.org/soep-core/datasets/hgen/hghinc
-
 ## 2.1 Merge all variables from different data set to universal data set -------
-universal <- PL %>%
+universal <- PL %>% 
   left_join(PPATHL) %>%
   left_join(PGEN) %>%
   left_join(HL) %>%
   left_join(PEQUIV) %>%
-  left_join(HGEN) %>%
   arrange(pid, syear, hid) # order rows according to pid, syear and hid
-# Delete all rows with missing values for all merged-onto variables
 
 
 # 3 Generate main datasets -----------------------------------------------------
@@ -210,29 +201,16 @@ data_all <- universal %>%
   mutate( gebjahr = replace(gebjahr, gebjahr<0, NA), # convert negative gebjahr to missing values 
           age = case_when(!is.na(gebjahr) ~ syear - gebjahr), # define age variable as:= sampleyear(year) - year born(gebjahr)
           age = replace (age, age<0, NA)) %>%  # exclude values where syear > gebjahr 
-  filter(age>=21, age<=64,   # (1) Filter: Age between 21 and 64
-         l11102 %in% c(1,2), # (2) Filter: Place of living is Germany (either West:1 or East:2)  
-         # (3) Filter: data from waves 92,94,96,97,01,05,07,09,11
-         syear %in% c(1992, 1994, 1996, 1997, 2001, 2005, 2007, 2009, 2011)) 
+  filter(age>=21, age<=64,       # (1) Filter: Age between 21 and 64
+         l11102 %in% c(1,2)) %>% # (2) Filter: Place of living is Germany (either West:1 or East:2)  
+  renaming() %>% 
+  recoding()
 
-## 3.2 Rename and recode main variables ----------------------------------------
-data_all <- data_all %>% renaming() %>% recoding() 
+## 3.2 Filter for the years 1991 to 2011 ---------------------------------------
+data_main <- data_all %>% filter(syear %in% 1991:2011) 
 
-## 3.3 Subsetting data set ------------------------------------------------------
-datasets <- list()
-main_vars <- c("culture", "cinema", "sports", "social","volunteer", "help")
-for (i in 1:length(main_vars)){
-  currentvar <- main_vars[i] # current main variable (e.g main_vars[1] = "culture", main_vars[2] = "cinema" ...)
-  allothermainvars <- main_vars[-(which(main_vars == currentvar))] # all other main variables except the current one 
-  df_crop <- data_all %>% 
-    select(!all_of(allothermainvars)) # %>%   # exclude all other main variables (e.g. for data set "culture" exclude: "cinema", "sports", "social", "help" and "volunteer" )
- #   drop_na(all_of(currentvar)) # exclude all missing values of the current main variable 
-  datasets[[i]] <- df_crop # add to list "datasets"
-  names(datasets)[i]<- paste0("d",currentvar) # rename entry of list 
-}
-list2env( datasets , .GlobalEnv ) # create 6 dataframes from list "datasets"
+
 # remove irrelevant variables and dataframes from global console
-rm(df_crop, i, currentvar, allothermainvars, HL, 
-   PEQUIV, PGEN, PL, PPATHL, universal) 
+rm( HL, PEQUIV, PGEN, PL, PPATHL, universal) 
 
 

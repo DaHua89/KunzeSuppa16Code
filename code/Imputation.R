@@ -57,10 +57,10 @@ pm[,'syear'] <- 0 # not sure here, but for now don't include syear as a predicto
 pm
 #data5 <- drop_na(data4, all_of(outcomes)) # if we want to drop the outcome missings
 
-if (!exists("imp_long") & file.exists(file.path(getwd(), "data","imp_long.RData"))){ 
+if(!exists("imp_long") & file.exists(file.path(getwd(), "data","imp_long.RData"))){ 
   load(file.path(getwd(), "data","imp_long.RData")) 
   print("imp_long.RData is loaded into R environment.")
-  } else { 
+  } else if (!exists("imp_long") & !file.exists(file.path(getwd(), "data","imp_long.RData"))){ 
   library("blme")
   start.time <- Sys.time()
   imp_long <- mice(data4, predictorMatrix = pm, 
@@ -71,7 +71,7 @@ if (!exists("imp_long") & file.exists(file.path(getwd(), "data","imp_long.RData"
   end.time <- Sys.time()
   time.taken <- end.time - start.time
   save(imp_long, file = "imp_long.RData")
-} 
+  } 
 imp_list <- imp_long %>% complete('all') # extract five imputed datasets
 
 

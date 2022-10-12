@@ -101,7 +101,7 @@ GetTexfile <- function(df, model){
   # Create .tex file
   options(knitr.table.format = "latex")
   main <- kable(df, booktabs = TRUE, caption = paste("Summary of Regression Estimates for Model", model), 
-                col.names = c("\\textit{Type and column no.}",rep(c("\\textit{orig.}", "\\textit{repl.}", "\\textit{imp.}"),rep_no)),
+                col.names = c("",rep(c("\\textit{orig.}", "\\textit{repl.}", "\\textit{imp.}"),rep_no)),
                 align = "lcccccc", row.names = FALSE, linesep = "", escape = F) %>% 
     add_header_above(data_frame(header_names, c(1,rep(ncols, rep_no))), bold = TRUE) %>% 
     kable_styling(latex_options = "hold_position")
@@ -114,9 +114,15 @@ GetTexfile <- function(df, model){
                main,fixed=TRUE)
   main <- gsub("\\caption" ,"\\begin{sidewaystable}[!h] \n\\caption",main ,fixed=TRUE)
   main <- gsub("\\end{tabular}" ,"\\end{tabularx}",main ,fixed=TRUE)
-  main <- gsub("\\begin{tabularx}[t]{lcccccclcc}" ,"\\begin{tabularx}{0.97\\linewidth}{l l*{9}{Y}}",main ,fixed=TRUE)
-  main <- gsub("NoObs" ,"\\\\[-1.8ex] \\hline \\\\[-1.8ex] NoObs ",main ,fixed=TRUE)
+  main <- gsub("\\begin{tabular}[t]{lcccccclcc}" ,"\\begin{tabularx}{\\linewidth}{l l*{9}{Y}}",main ,fixed=TRUE)
+  main <- gsub("NoObs" ,"\\midrule No. of Obs.",main ,fixed=TRUE)
   main <- gsub("NA" ,"-",main ,fixed=TRUE)
+  main <- gsub("NoIndiv" ,"Individuals",main ,fixed=TRUE) 
+  main <- gsub("AdjR2" ,"Adj. R^2",main ,fixed=TRUE) 
+  main <- gsub("OLF" ,"Out of labour force",main ,fixed=TRUE) 
+  main <- gsub("UEPC" ,"Unemployed due to plant closure",main ,fixed=TRUE) 
+  main <- gsub("UEO" ,"Unemployed due to other reasons",main ,fixed=TRUE) 
+  main <- gsub("UE" ,"Unemployed",main ,fixed=TRUE) 
   main
   return(main)
 }
@@ -347,7 +353,7 @@ for(i in 1:length(hf)) {
 ## 5.4 Built table -------------------------------------------------------------
 # Panel A: Merge original,reproduction and extension for culture, cinema and sports: 
 tab2A <-  data.frame(term  = c("UEPC", "UEPC_t", "UEO", "UEO_t", "OLF", "OLF_t"))
-for (i in 1:3){
+for (i in c(1:2,5)){
   joined <- model2_orig[[i]] %>% full_join( model2_rep[[i]], by = "term" ) %>% 
     full_join( model2_imp[[i]], by = "term" )
   tab2A <- tab2A %>% full_join(joined, by = "term")
@@ -357,7 +363,7 @@ tab2A
 
 # Panel B: Merge original,reproduction and extension for socialize, volunteer, help
 tab2B <-  data.frame(term  = c("UEPC", "UEPC_t", "UEO", "UEO_t", "OLF", "OLF_t"))
-for (i in 4:6){
+for (i in c(4,6,3)){
   joined <- model2_orig[[i]] %>% full_join( model2_rep[[i]], by = "term" ) %>% 
     full_join( model2_imp[[i]], by = "term" )
   tab2B <- tab2B %>% full_join(joined, by = "term")

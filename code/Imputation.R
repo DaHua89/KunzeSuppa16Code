@@ -108,3 +108,6 @@ names(estimateModel2_imp) <- depvars
 # Test: 
 # estimateModel2_imp[[1]]
 
+
+rm(data2,data3, data4, list1, list2, pm, covariates, depvars, i, no_factor, 
+   outcomes, start.time, toload, years, imp_list, imp_long)

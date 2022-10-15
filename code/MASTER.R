@@ -57,8 +57,7 @@ R.Version()$version.string
 # Please follow the description in the SetWD.pdf file to manually complete 
 # the command "setwd(..)" by filling in the path to 
 # folder "KunzeSuppa_JEBO2017_ReplicationFiles" for ".........": 
-setwd("~/Downloads/KunzeSuppa_JEBO2017_ReplicationFiles")
-# setwd("......... /KunzeSuppa_JEBO2017_ReplicationFiles") 
+setwd("......... /KunzeSuppa_JEBO2017_ReplicationFiles") 
 
 
 
@@ -72,7 +71,7 @@ graphics.off()                # clear console
 # Please run the next 5 lines of code. 
 libraries = c("haven", "dplyr", "here", "labelled", "tidyr", "ggplot2", "Hmisc", 
               "stringi", "stringr",  "tidyverse","lmtest", "fixest",  "knitr", 
-              "kableExtra","mice", "miceadds", "micemd", "reshape", "xtable") # lubridate, "sandwich" "texreg","xtable",
+              "kableExtra","mice", "miceadds", "micemd", "reshape", "xtable") 
 
 lapply(libraries, function(x) if (!(x %in% installed.packages())) { 
   install.packages(x) })

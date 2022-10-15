@@ -1,9 +1,15 @@
 # Replication package
 
-This repository includes the accompanying code to our term paper, the goal of which is the replication of the results obtained by 
+This repository includes the accompanying code to our term paper
 
-L. Kunze, N. Suppa (2017) in "Bowling alone or bowling at all? The effect of unemployment on social participation", 
-*[Journal of Economic Behavior & Organization](https://doi.org/10.1016/j.jebo.2016.11.012)*, 133, 213–235. 
+<<Picking up the Bowling Pins: A Reproduction of 
+“Bowling alone or bowling at all? The effect of unemployment on social participation” 
+by Kunze and Suppa (2017)>>
+  
+the goal of which is the replication of the results obtained by 
+
+<<L. Kunze, N. Suppa (2017) in "Bowling alone or bowling at all? The effect of unemployment on social participation", 
+*[Journal of Economic Behavior & Organization](https://doi.org/10.1016/j.jebo.2016.11.012)*, 133, 213–235.>>
 
 ## Structur
 The folder **code/** contains three .R files: 

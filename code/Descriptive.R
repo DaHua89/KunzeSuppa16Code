@@ -4,14 +4,13 @@
 ******************** Descriptive.R (master: MASTER.R) **************************
 ********************************************************************************
 Authors:    T. Bethge, I. Fetzer, M. Paul  
-Data:       SOEP (v30, teaching version [DOI: 10.5684/soep.v30])
+Data:       SOEP (v37, teaching version [DOI: 10.5684/soep.core.v37t])
 Note:       Please refer to the MASTER.R file to run the present R script. 
 '
 
-# 1 Load & subset data ---------------------------------------------------------
-## 1.1 Load in data ------------------------------------------------------------
+# 1 Load in data ---------------------------------------------------------------
 df=list()
-toload <- c("our_dataset")
+toload <- c("main_dataset")
 for( i in 1:length(toload)){
 i <- toload[i]
   if (exists(i)) {
@@ -20,31 +19,40 @@ i <- toload[i]
     df[[i]] <- read_dta(file = file.path(getwd(), "data",paste0(i, ".dta")))
     print(paste("File", i, "successfully loaded."))
   }else {
-    print(paste("File", i, "missing. Please run GetDataset.R first!"))
+    stop(paste("File", i, "missing. Please run GetDataset.R first!"))
+    #print(paste("File", i, "missing. Please run GetDataset.R first!"))
   }
   list2env( df , .GlobalEnv )
 }
-rm(df)
-## 1.2 Subsetting data ---------------------------------------------------------
-datasets <- list()
-main_vars <- c("culture", "cinema", "sports", "social","volunteer", "help")
+rm(df, toload)
+
+
+if (!exists("subdatasets")) {
+subdatasets <- list()
+main_vars <- c("culture", "cinema","volunteer", "social","help",  "sports")
 for (i in 1:length(main_vars)){
   currentvar <- main_vars[i] # current main variable (e.g main_vars[1] = "culture", main_vars[2] = "cinema" ...)
   allothermainvars <- main_vars[-(which(main_vars == currentvar))] # all other main variables except the current one 
-  df_crop <- our_dataset %>% 
-    select(!all_of(allothermainvars))# %>% # exclude all other main variables (e.g. for data set "culture" exclude: "cinema", "sports", "social", "help" and "volunteer" )
-    #drop_na(all_of(currentvar)) # exclude all missing values of the current main variable 
-  df_crop <- df_crop[complete.cases(df_crop),] # only include complete cases! (remove all rows with NAs)
-  datasets[[i]] <- df_crop # add to list "datasets"
-  names(datasets)[i]<- paste0("d",currentvar) # rename entry of list 
+  df_crop <- main_dataset %>% 
+    select(!all_of(allothermainvars)) # exclude all other main variables (e.g. for data set "culture" exclude: "cinema", "sports", "social", "help" and "volunteer" )
+  subdatasets[[i]] <- df_crop # add to list "subdatasets"
+  names(subdatasets)[i]<- paste0("d",currentvar) # rename entry of list 
 }
-list2env( datasets , .GlobalEnv ) # create 6 dataframes from list "datasets"
+# Complete case subdatasets:  
+subdatasets_cc <- lapply(subdatasets, function(x){ 
+  x <- x[complete.cases(x),]})
+names(subdatasets_cc) <- paste0(names(subdatasets_cc), "_cc")
+# Unlist "subdatasets" and "subdatasets_cc" and create 6x2 dataframes 
+# list2env( subdatasets , .GlobalEnv ) 
+# list2env( subdatasets_cc , .GlobalEnv ) 
 rm(df_crop, i, currentvar, allothermainvars)
+}
+
 
 # 2 Load sub- functions -------------------------------------------------------
 specify_decimal <- function(x) trimws(format(round(x, 3), nsmall=3))
 getMeans <- function(df) { 
-  mainvars <- c("culture", "cinema", "sports", "social", "volunteer", "help") 
+  mainvars <- c("culture", "cinema", "volunteer", "social", "help", "sports") 
   incl <- mainvars %in% names(df)
   i <- which(incl ==TRUE)
   mx <- as.data.frame(matrix(rep(NA, nrow(df)*5), ncol=5))
@@ -52,12 +60,12 @@ getMeans <- function(df) {
   df <- cbind(df, mx)
   cin <- df  %>% mutate(obs = nrow(df), 
                         ids = length(unique(pid))) %>% 
-    select(pid, culture, cinema, sports, social, volunteer, help, 
+    select(pid, culture, cinema,volunteer, social, help, sports, 
            EP, UE, OLF, UEPC, UEO, age, yearsedu, 
            disabled, married, child0, child1, child2, 
            child3plus, shock_partner, shock_child, shock_sepdiv, 
            west, needcare, obs, ids)
-  names <- c("Culture", "Cinema","Sports", "Socialize", "Volunteer", "Helping", 
+  names <- c("Culture", "Cinema","Volunteer", "Socialize", "Helping", "Sports",
              "Employed", "Unemployed", "Out of labour force (OLF)",  "Plant closure unemployed", 
              "Other unemployed", "Age (in years)", "Years of education", "Work disability",
              "Married", "Number of children: 0", "Number of children: 1", "Number of children: 2", 
@@ -81,10 +89,10 @@ getMeans <- function(df) {
 getOrigSumStat <- function(){
   culture <- c(1.841, rep(NaN, 5))
   cinema <- c(NaN, 2.045, rep(NaN,4))
-  sports <- c(NaN, NaN, 2.262, rep(NaN,3))
+  volunteer <- c(NaN, NaN, 1.553, rep(NaN,3))
   social <- c(rep(NaN,3), 3.191, rep(NaN,2))
-  volunteer <- c(rep(NaN,4), 1.553, NaN)
-  help <- c(rep(NaN,5), 2.476)
+  help <- c(rep(NaN,4), 2.476, NaN)
+  sports <- c(rep(NaN,5), 2.262) 
   EP <- rep(0.724, 6)
   UE <- rep(0.069, 6)
   OLF <- rep(0.207, 6)
@@ -105,19 +113,25 @@ getOrigSumStat <- function(){
   needcare <- rep(0.027,6)
   obs <- c(115562, 115463, 115197, 115558 , 115301, 115465)
   ids <- c(34640, 34634, 34618, 34663, 34605, 34648)
-  SumStat_orig  <- data.frame(rbind(culture, cinema, sports, social, volunteer, help, 
+  SumStat_orig  <- data.frame(rbind(culture, cinema, volunteer, social,help, sports, 
                                     EP, UE, OLF , UEPC, UEO, age, yearsedu, disabled, 
                                     married, child0, child1, child2, child3plus, 
                                     shock_partner, shock_child, shock_sepdiv, west, 
                                     needcare, obs, ids))  %>%
     mutate_if(is.numeric , specify_decimal) 
-  names <- c("Culture", "Cinema","Sports", "Socialize", "Volunteer", "Helping", 
+  names <- c("Culture", "Cinema", "Volunteer","Socialize", "Helping", "Sports", 
              "Employed", "Unemployed", "Out of labour force (OLF)",  "Plant closure unemployed", 
              "Other unemployed", "Age (in years)", "Years of education", "Work disability",
              "Married", "Number of children: 0", "Number of children: 1", "Number of children: 2", 
              "Number of children: 3+", "Shock: Spouse died", "Shock: Child born", 
              "Shock: Divorce or separated", "West Germany", "Person needing care in HH", 
              "No. of observations", "No. of individuals")
+  SumStat_orig2 <-  SumStat_orig
+  SumStat_orig2$X6[7:26] <-  SumStat_orig$X3[7:26]   # Column 3 -> Column 6
+  SumStat_orig2$X3[7:26] <-  SumStat_orig$X5[7:26]   # Column 5 -> Column 3
+  SumStat_orig2$X5[7:26] <-  SumStat_orig$X6[7:26]   # Column 6 -> Column 5
+  rm(SumStat_orig)
+  SumStat_orig <- SumStat_orig2
   SumStat_orig[25,] <- round(as.integer(SumStat_orig[25,]),1)
   SumStat_orig[26,] <- round(as.integer(SumStat_orig[26,]),1)
   SumStat_orig$X0 <- rownames(SumStat_orig)
@@ -141,9 +155,9 @@ SetComma <- function(df){
 
 
 
-# 3 CREATE TABLES -------------------------------------------------------------
-## 3.1 Summary Statistics as .tex file -----------------------------------------
-sumstat_solo <- lapply(datasets, getMeans)
+# 3 CREATE TABLES --------------------------------------------------------------
+## 3.1 Comparison Summary Statistics -------------------------------------------
+sumstat_solo <- lapply(subdatasets_cc, getMeans)
 names(sumstat_solo) <- c(rep("",6))
 sumstat_our <- sumstat_solo %>% reduce(left_join, by = "Dataset No.")
 sumstat_our[25:26,-1] <- as.data.frame(apply(sumstat_our[25:26,-1],2, SetComma))
@@ -160,9 +174,9 @@ for (i in 2:nrow(sumstat_all)){
 rownames(sumstat_all) <- NULL
 # Create Latex output
 options(knitr.table.format = "latex")
-tex_sumstat <- kable(sumstat_all, booktabs = TRUE, caption = "Comparison of Summary Statistics", 
+tex_sumstat <- kable(sumstat_all, booktabs = TRUE, caption = "Comparison of summary Statistics in Complete Case", 
               align = "lcccccc", row.names = FALSE, linesep = "") %>% 
-  add_header_above(c(" ", "Mean Values of our analysis vs.parencite "=6)) %>% 
+  add_header_above(c(" ", "Mean Values of Reproduction vs. Original"=6)) %>% 
   kable_styling(latex_options = "hold_position")
 tex_sumstat <- gsub("NaN" ,"",tex_sumstat ,fixed=TRUE)
 tex_sumstat <- gsub("0." ,".",tex_sumstat ,fixed=TRUE)
@@ -186,9 +200,71 @@ tex_sumstat <- gsub("Employed" ,"\\\\[-1.8ex] \n Employed ",tex_sumstat ,fixed=T
 tex_sumstat
 # remove irrelevant variables and dataframes from global console
 rm(i,sumstat_solo, sumstat_all, sumstat_orig, sumstat_our)
-
 # Test: 
-mean(dculture$UEPC) + mean(dculture$UEO) == mean(dculture$UE)
+mean(subdatasets_cc[[1]]$UEPC) + mean(subdatasets_cc[[1]]$UEO) == mean(subdatasets_cc[[1]]$UE)
+
+
+
+
+
+## 3.2 Appendix B: Summary statistics ------------------------------------------
+sumtables <- list()
+main_vars <- c("culture", "cinema", "volunteer", "social","help", "sports")
+library(xtable)
+for(i in 1:length(subdatasets)){
+  currvar <- main_vars[i]
+  data_stats <- subdatasets[[i]] %>% 
+    select(pid, all_of(currvar),  EP, UE, OLF, UEPC, UEO, age, yearsedu, disabled, married, child0, 
+           child1, child2, child3plus, shock_partner, shock_child, shock_sepdiv, 
+           west, needcare)
+# Add number of obs per variable 
+vars <- names(data_stats)[-1]
+n_obs <- c()
+for(j in 1:length(vars)){
+  currentvar <- vars[j]
+  no_nas <- sum(is.na(data_stats[, currentvar]))
+  no_obsv <-  nrow(data_stats) - no_nas
+  n_obs[j] <- no_obsv %>% as.character() %>% SetComma()
+}
+# Add number of individuals per variable 
+n_indiv <- c()
+for(j in 1:length(vars)){
+  currentvar <- vars[j]
+  n_indiv[j] <- data_stats %>% drop_na(all_of(currentvar)) %>% select(pid) %>% distinct() %>% 
+    count() %>% as.character() %>% SetComma()
+}
+cov_names <- c(str_to_title(currvar), "Employed", "Unemployed", "Out of labour force (OLF)",  "Plant closure unemployed", 
+           "Other unemployed", "Age (in years)", "Years of education", "Work disability",
+           "Married", "Number of children: 0", "Number of children: 1", "Number of children: 2", 
+           "Number of children: 3+", "Shock: Spouse died", "Shock: Child born", 
+           "Shock: Divorce or separated", "West Germany", "Person needing care in HH")
+names(data_stats)[-1] <- cov_names
+# An output is created that shows a complete descriptive statistic with: 
+#  min, p20, mean, sd, median, p75, max, n_obs, n_indiv
+table_summarystats <- data_stats %>% select(!pid) %>% 
+  gather(variable, value) %>% 
+  group_by(variable) %>% summarise(`Min` = as.character(min(value, na.rm = TRUE)), 
+                                   `p25` = as.character(quantile(value, probs= c(0.25),na.rm = TRUE)), 
+                                   `Mean` = as.character(round(mean(value, na.rm = TRUE),4)),
+                                   `SD` = as.character(round(sd(value, na.rm = TRUE),4)),
+                                   `Median` = as.character(median(value, na.rm = TRUE)),
+                                   `p75` = as.character(quantile(value, probs= c(0.75),na.rm = TRUE)),
+                                   `Max` = as.character(max(value, na.rm = TRUE))) %>%
+                                   #`No. of obs.` = sum(!is.na(value))) %>% 
+  suppressWarnings() %>% 
+  slice(match(cov_names, variable))
+table_summarystats$`No. of obs.` <- n_obs
+table_summarystats$`Individuals` <- n_indiv
+sumtables[[i]] <- xtable(table_summarystats,type = "latex", method = "compact",
+                               caption = '\\textbf{...}')
+}
+names(sumtables) <- main_vars
+
+
+
+# remove irrelevant variables and dataframes from global console
+rm( table_summarystats, cov_names, currentvar, currvar, i, j, main_vars, 
+    n_indiv, n_obs, no_nas, no_obsv, vars, data_stats) 
 
 
 

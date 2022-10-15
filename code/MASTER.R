@@ -20,17 +20,7 @@ Purpose:    This R script is the accompanying code to our term paper, which
             <<  L. Kunze, N. Suppa (2017) in "Bowling alone or bowling at all? 
                 The effect of unemployment on social participation", 
                 Journal of Economic Behavior & Organization, 133, 213–235. >>>
-            
-Content:    This R script is the main R script that calls upon and runs 
-            six other R scripts devoted to our anlysis: 
-            - GetDataset.R, which retrieves our main data set
-            - Descriptive.R, which outputs descriptive statistical analysis (table 1 and appendix B)
-            - GetFigure.R, outputs figure 1 of our term paper
-            - Imputation.R, which runs our multiple imputation analysis
-            - GetMainTable.R reproduces the linear fixed effects regression results by 
-              Kunze and Suppa (2007) and outputs table 2 and table 3
-            - GetNumbers.R calculates all numbers used within the text of the term paper. 
-              It should be studied individually.
+      
             
 Notes:      - Please read the supplementary README.pdf file before running this code. 
             - Please execude the code chronologically. 

@@ -24,9 +24,6 @@ Purpose:    This R script is the accompanying code to our term paper, which
             
 Notes:      - Please read the supplementary README.pdf file before running this code. 
             - Please execude the code chronologically. 
-              (To expand the document outline, click on the symbol with grey lines 
-              next the "Source" button on the header of the R editor or use the 
-              shortcut SHIFT+ALT+O (for Mac SHIFT+COMMAND+O).)
             - Please make sure to read the comments of the chapter 1 (MANUAL SETUP) 
               carefully before running the remaining code of MASTER.R. 
 ' 
@@ -44,9 +41,8 @@ R.Version()$version.string
 # updateR()
 
 # 1.2 Define your working directory  -------------------------------------------
-# Please follow the description in the SetWD.pdf file to manually complete 
-# the command "setwd(..)" by filling in the path to 
-# folder "KunzeSuppa_JEBO2017_ReplicationFiles" for ".........": 
+# Please fill in the path to 
+# folder "KunzeSuppa_JEBO2017_Reproduction-main" for ".........": 
 setwd("......... /KunzeSuppa_JEBO2017_ReproductionFiles-main") 
 
 

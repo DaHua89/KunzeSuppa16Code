@@ -4,14 +4,13 @@
 ********************* Inductive.R (master: MASTER.R) ***************************
 ********************************************************************************
 Authors:    T. Bethge, I. Fetzer, M. Paul  
-Data:       SOEP (v30, teaching version [DOI: 10.5684/soep.v30])
+Data:       SOEP (v37, teaching version [DOI: 10.5684/soep.core.v37t])
 Note:       Please refer to the MASTER.R file to run the present R script. 
 '
 
-# 1 Load and subset data -------------------------------------------------------
-## 1.1 Load in data ------------------------------------------------------------
+# 1 Load in data ---------------------------------------------------------------
 df=list()
-toload <- c("our_dataset")
+toload <- c("main_dataset")
 for( i in 1:length(toload)){
   i <- toload[i]
   if (exists(i)) {
@@ -20,33 +19,35 @@ for( i in 1:length(toload)){
     df[[i]] <- read_dta(file = file.path(getwd(), "data",paste0(i, ".dta")))
     print(paste("File", i, "successfully loaded."))
   }else {
-    print(paste("File", i, "missing. Please run GetDataset.R first!"))
+    stop(paste("File", i, "missing. Please run GetDataset.R first!"))
+    #print(paste("File", i, "missing. Please run GetDataset.R first!"))
   }
   list2env( df , .GlobalEnv )
 }
-rm(df)
+rm(df, toload)
 
-## 1.2 Subsetting data ---------------------------------------------------------
-datasets <- list()
-main_vars <- c("culture", "cinema", "sports", "social","volunteer", "help")
-for (i in 1:length(main_vars)){
-  currentvar <- main_vars[i] # current main variable (e.g main_vars[1] = "culture", main_vars[2] = "cinema" ...)
-  allothermainvars <- main_vars[-(which(main_vars == currentvar))] # all other main variables except the current one 
-  df_crop <- our_dataset %>% 
-    select(!all_of(allothermainvars))# %>% # exclude all other main variables (e.g. for data set "culture" exclude: "cinema", "sports", "social", "help" and "volunteer" )
-  #drop_na(all_of(currentvar)) # exclude all missing values of the current main variable 
-  # df_crop <- df_crop[complete.cases(df_crop),] # only include complete cases! (remove all rows with NAs)
-  datasets[[i]] <- df_crop # add to list "datasets"
-  names(datasets)[i]<- paste0("d",currentvar) # rename entry of list 
+
+if (!exists("subdatasets")) {
+  subdatasets <- list()
+  main_vars <- c("culture", "cinema","volunteer", "social","help",  "sports")
+  for (i in 1:length(main_vars)){
+    currentvar <- main_vars[i] # current main variable (e.g main_vars[1] = "culture", main_vars[2] = "cinema" ...)
+    allothermainvars <- main_vars[-(which(main_vars == currentvar))] # all other main variables except the current one 
+    df_crop <- main_dataset %>% 
+      select(!all_of(allothermainvars)) # exclude all other main variables (e.g. for data set "culture" exclude: "cinema", "sports", "social", "help" and "volunteer" )
+    subdatasets[[i]] <- df_crop # add to list "subdatasets"
+    names(subdatasets)[i]<- paste0("d",currentvar) # rename entry of list 
+  }
+  # Complete case subdatasets:  
+  subdatasets_cc <- lapply(subdatasets, function(x){ 
+    x <- x[complete.cases(x),]})
+  names(subdatasets_cc) <- paste0(names(subdatasets_cc), "_cc")
 }
-list2env( datasets , .GlobalEnv ) # create 6 dataframes from list "datasets"
-rm(df_crop, i, currentvar, allothermainvars)
+# Unlist "subdatasets" and "subdatasets_cc" and create 6x2 dataframes 
+  list2env( subdatasets , .GlobalEnv ) 
+  # list2env( subdatasets_cc , .GlobalEnv ) 
 
-## 1.3 Complete case dataset ---------------------------------------------------
-data <- our_dataset[complete.cases(our_dataset),]
-# Merge all 6 main datasets
-# data <- dculture %>% full_join(dcinema) %>% full_join(dsports) %>% full_join(dsocial) %>%
-#  full_join(dvolunteer) %>% full_join(dhelp)
+
 
 
 
@@ -61,8 +62,9 @@ SetComma <- function(df){
 MoveTStatistic <- function(df){
   x <- df %>% select(term, estimate, p.value) %>% mutate(estimate = as.character(round(estimate, 4)))
   xx <- df %>% select( term, statistic) %>% mutate( p.value = rep(NA, nrow(x)), 
-                                                    term = paste0(term, "_t")) %>% 
-    rename( estimate = statistic) %>% mutate(estimate = paste0("(",as.character(round(estimate, 2)), ")"))
+                                                    term = paste0(term, "_t")) 
+  names(xx)[2] <- "estimate"
+  xx <- xx %>% mutate(estimate = paste0("(",as.character(round(estimate, 2)), ")"))
   
   r <- rbind(x, xx)
   r <- r[kronecker(1:nrow(x), c(0, nrow(x)), "+"), ]
@@ -96,16 +98,14 @@ GetTexfile <- function(df, model){
     a <- new_colnames[i]
     header_names <- c(header_names,a)
   }
-  new_header <- data_frame(c(" ", new_colnames[1],new_colnames[2],new_colnames[3]), c(1,ncols, ncols, ncols))
-  
+ 
   # Create .tex file
   options(knitr.table.format = "latex")
   main <- kable(df, booktabs = TRUE, caption = paste("Summary of Regression Estimates for Model", model), 
                 col.names = c("",rep(c("\\textit{orig.}", "\\textit{repl.}", "\\textit{imp.}"),rep_no)),
                 align = "lcccccc", row.names = FALSE, linesep = "", escape = F) %>% 
-    add_header_above(data_frame(header_names, c(1,rep(ncols, rep_no))), bold = TRUE) %>% 
+    kableExtra::add_header_above(data_frame(x = header_names, y = c(1,rep(ncols, rep_no))), bold = TRUE) %>% 
     kable_styling(latex_options = "hold_position")
-  #main <- gsub("& NA & NA & NA & NA & NA & NA & NA & NA & NA", "", main, fixed = TRUE)
   main <- gsub("one" ,"^{*}",main ,fixed=TRUE)
   main <- gsub("two" ,"^{**}",main ,fixed=TRUE)
   main <- gsub("three" ,"^{***}",main,fixed=TRUE) 
@@ -130,9 +130,11 @@ GetTexfile <- function(df, model){
 
 
 # 3 Preparation ----------------------------------------------------------------
+# Make complete case data set 
+data <- main_dataset_cc <- main_dataset[complete.cases(main_dataset),]
+
 # Extract no of individuals and observations of each complete case dataset
 data_list <- Hmisc::llist(dculture, dcinema, dsports, dsocial, dvolunteer, dhelp)
-names(dcinema)
 no_indiv_completeCase <- sapply(data_list, function(x){
   a <- length(unique(x[complete.cases(x), ]$pid)) 
   a <- a %>% SetComma
@@ -196,7 +198,7 @@ for (i in 1:length(estimateModel1)) {
   names(r)[names(r)== "estimate"] <- paste0("our_", name)
   r <- as.data.frame(r[1:(vars_printed*2),])
   r[(vars_printed*2+1),1] <- "NoObs"
-  r[(vars_printed*2+1),2] <-  no_indiv_completeCase[i]
+  r[(vars_printed*2+1),2] <-  no_obs_completeCase[i]
   r[(vars_printed*2+2),1] <- "NoIndiv"
   r[(vars_printed*2+2),2] <- no_indiv_completeCase[i]
   r[(vars_printed*2+3),1] <- "AdjR2"
@@ -205,14 +207,14 @@ for (i in 1:length(estimateModel1)) {
   names(model1_rep)[i] <- name
   rm(x,r)
 }
-model1_rep
+
 ## 4.3 Extension: Fit Model 1 with imputed missing values ----------------------
 # Check if estimatedModel1_imp list is in environment
 if (exists("estimateModel1_imp")) {
   print("List estimateModel1_imp is loaded.")
-  } else {
-    print(paste("List estimateModel1_imp missing. Please run Imputation.R first!"))
-  }
+  } else { 
+    stop(paste("List estimateModel1_imp missing. Please run Imputation.R first!"))
+}
 # Get regression table (estimates with sig. levels and t-statistic)
 hf <- estimateModel1_imp
 model1_imp <- list()
@@ -309,7 +311,7 @@ for (i in 1:length(estimateModel2)) {
   names(r)[names(r)== "estimate"] <- paste0("our_", name)
   r <- as.data.frame(r[1:(vars_printed*2),])
   r[(vars_printed*2+1),1] <- "NoObs"
-  r[(vars_printed*2+1),2] <-  no_indiv_completeCase[i]
+  r[(vars_printed*2+1),2] <-  no_obs_completeCase[i]
   r[(vars_printed*2+2),1] <- "NoIndiv"
   r[(vars_printed*2+2),2] <- no_indiv_completeCase[i]
   r[(vars_printed*2+3),1] <- "AdjR2"
@@ -375,6 +377,12 @@ for (i in c(4,6,3)){
 model2_tableA <- GetTexfile(tab2A, model = 2)
 model2_tableB <- GetTexfile(tab2B, model = 2)
 
+
+# remove irrelevant variables and dataframes from global console
+rm(vars_printed, no_obs, no_obs_completeCase, no_indiv_completeCase, no_indiv, 
+   name, i, depvars, adjr, r, tab1A, tab1B, joined, hf, dvolunteer, 
+   dcinema, dculture, dsocial, dsports, dhelp, df, tab2A, tab2B, data_list, data, 
+   main_dataset_cc)
 
 
 

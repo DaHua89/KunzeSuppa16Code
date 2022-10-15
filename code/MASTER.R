@@ -57,7 +57,7 @@ R.Version()$version.string
 # Please follow the description in the SetWD.pdf file to manually complete 
 # the command "setwd(..)" by filling in the path to 
 # folder "KunzeSuppa_JEBO2017_ReplicationFiles" for ".........": 
-setwd("......... /KunzeSuppa_JEBO2017_ReplicationFiles") 
+setwd("......... /KunzeSuppa_JEBO2017_ReproductionFiles-main") 
 
 
 

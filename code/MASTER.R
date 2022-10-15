@@ -24,7 +24,7 @@ Purpose:    This R script is the accompanying code to our term paper, which
 Content:    This R script is the main R script that calls upon and runs 
             six other R scripts devoted to our anlysis: 
             - GetDataset.R, which retrieves our main data set
-            - Descriptiv.R, which outputs descriptive statistical analysis (table 1 and appendix B)
+            - Descriptive.R, which outputs descriptive statistical analysis (table 1 and appendix B)
             - GetFigure.R, outputs figure 1 of our term paper
             - Imputation.R, which runs our multiple imputation analysis
             - GetMainTable.R reproduces the linear fixed effects regression results by 

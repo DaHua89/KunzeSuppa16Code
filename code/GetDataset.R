@@ -4,7 +4,7 @@
 ********************  GetDataset.R (master: MASTER.R) **************************
 ********************************************************************************
 Authors:    T. Bethge, I. Fetzer, M. Paul  
-Data:       SOEP (v30, teaching version [DOI: 10.5684/soep.v30])
+Data:       SOEP (v37, teaching version [DOI: 10.5684/soep.core.v37t])
 Note:       Please refer to the MASTER.R file to run the present R script.  
 '
 
@@ -43,7 +43,6 @@ renaming <- function(df){
 # It takes care of labeling the variables of the input dataframe. 
 # It requires that the renaming() subfunction has been called on the data frame 
 # before it is used!!! The function returns a modified dataframe. 
-
 labeling <- function(df){
   var_labels <- c(culture =  "1:=never, 2:=less frequently, 3:=monthly, 4:= weekly", 
                   cinema = "1:=never, 2:=less frequently, 3:=monthly, 4:= weekly", 
@@ -54,6 +53,7 @@ labeling <- function(df){
                   west ="1:= West Germany, 2:=East Germany" )
   label(df) <-  as.list(var_labels[match(names(df), names(var_labels))])
 }
+
 # The recoding() sub-function takes a dataframe as its only argument. 
 # It recodes the values of the variables "culture", "cinema", "sports", "social", 
 # "help" and "volunteer": 
@@ -69,19 +69,38 @@ recoding <- function(df){
               list(~ifelse(syear %in% c(1985, 1986, 1988, 1992, 1994, 1996, 1997, 2001, 2005, 2007, 2009, 2011),.,NA)))%>% # set all entries for our 6 main variables to NA, if syear is not in the waves: 85, 86, 88, 92, 94, 96, 97, 99, 01, 05, 07, 09, 11
     # Modifications on our 6 main variables 
     mutate_at(c("culture", "cinema", "sports", "social", "help", "volunteer"),
-              list(~recode(., '2'=4, '3'=3, '4'=2, '5'=1))) %>% # recode all variables' (.) values, whereas 2 becomes 4, 4 becomes 2 and 5 becomes 1 
-    mutate_at(c("culture", "cinema", "sports", "social", "help", "volunteer"),
-              list(~ifelse(.<0, NA, .)))  # recodes all variables (.) to NA, if they take values below zero (.<0)
+              list(~recode(., '2'=4, '3'=3, '4'=2, '5'=1))) #%>% # recode all variables' (.) values, whereas 2 becomes 4, 4 becomes 2 and 5 becomes 1 
+    #mutate_at(c("culture", "cinema", "sports", "social", "help", "volunteer"),
+              #list(~ifelse(.<0, NA, .)))  # recodes all variables (.) to NA, if they take values below zero (.<0)
 
   df <- df %>% select(!c("culture", "cinema", "sports", "social", "help", "volunteer")) %>% 
     left_join(df_main) 
   
-  # Modifications on our regressors 
-  df <- df %>% dplyr::mutate(married = replace(married, married>1, 0),  # Yes(1); Otherwise (0)
+  # Modifications on our regressors
+  df <- df %>% dplyr::mutate(cinemaNA = cinema, 
+                             cinema = replace(cinema, cinema<0, NA), 
+                             cultureNA = culture, 
+                             culture = replace(culture, culture<0, NA), 
+                             sportsNA = sports, 
+                             sports = replace(sports, sports<0, NA), 
+                             socialNA = social, 
+                             social = replace(social, social<0, NA), 
+                             helpNA = help, 
+                             help = replace(help, help<0, NA), 
+                             volunteerNA = volunteer, 
+                             volunteer = replace(volunteer, volunteer<0, NA), 
+                             
+                             marriedNA = married, 
+                             married = replace(married, married >1, 0),  # Yes(1); Otherwise (0)
                              married = replace(married, married < 0, NA), # define negative values as missing values 
-                             yearsedu = replace(yearsedu, yearsedu <0, NA), # define negative values as missing values 
-                             needcare = replace(needcare, needcare <0, NA), # define negative values as missing values 
+                             
+                             yearseduNA = yearsedu, 
+                             yearsedu = replace(yearsedu, yearsedu == -1, NA), # define -1 (no answer) as missing values 
+                             
+                             needcareNa = needcare, 
                              needcare = replace(needcare, needcare>1, 0),  # Yes(1); Otherwise (0)
+                             needcare = replace(needcare, needcare <0, NA), # define negative values as missing values 
+                             
                              west = replace(west, west==2, 0), # West(1); East(0)
                              income = replace(income, income <0, NA),
                              child = replace(child, child<0, NA), # define negative values as missing values 
@@ -96,34 +115,40 @@ recoding <- function(df){
                              child3plus = case_when(child > 2 ~ 1, 
                                                     child <= 2  ~ 0),
                              
+                             shock_partnerNA = shock_partner, 
+                             shock_partnerNA = replace(shock_partnerNA, shock_partnerNA == -2, 0), 
                              shock_partner = case_when(shock_partner %in% c(1:12) ~ 1, shock_partner == -2 ~ 0), 
                              shock_partner = replace(shock_partner, shock_partner %in% c(-1, -3:-8), NA), 
                              
+                             shock_childNA = shock_child, 
+                             shock_childNA = replace(shock_childNA, shock_childNA == -2, 0), 
                              shock_child = replace(shock_child, shock_child %in% c(1:12), 1),
                              shock_child = replace(shock_child, shock_child %in% c(-1,-3:-8), NA),
                              shock_child = replace(shock_child, shock_child %in% c(-2), 0),
                              
-                             
+                             disabledNA = disabled, 
+                             disabledNA = replace(disabledNA, disabledNA == -2, 0), 
                              disabled = replace(disabled, disabled %in% c(-1, -3:-8), NA), 
                              disabled_degree = replace(disabled, disabled == -2, 0), 
-                             disabled = replace(disabled_degree, disabled_degree > 0, 1), 
-                             
-                             separated = replace(separated, separated %in% c(1:12), 1),
-                             separated = replace(separated, separated %in% c(-1,-3:-8), NA),
-                             separated = replace(separated, separated == -2, 0),
-                             divorced = replace(divorced, divorced %in% c(1:12), 1),
-                             divorced = replace(divorced, divorced %in% c(-1,-3:-8), NA),
-                             divorced = replace(divorced, divorced == -2, 0),
-                             
-                             shock_sepdiv = case_when(divorced == 0 & separated == 0 ~ 0, 
-                                                      divorced == 1 & separated == 0 ~ 1,
-                                                      divorced == 0 & separated == 1 ~ 1,
-                                                      is.na(divorced) & separated == 0 ~ 0,
-                                                      divorced == 0 & is.na(separated) ~ 0, 
-                                                      divorced == 1 & is.na(separated) ~ 1, 
-                                                      is.na(divorced)& separated == 1 ~ 1, 
-                                                      divorced == 1 & separated == 1 ~ 1), 
-                             
+                             disabled = replace(disabled_degree, disabled_degree > 0, 1)) %>%
+    dplyr::mutate(separated = replace(separated, separated %in% c(1:12), 1),
+           #separated = replace(separated, separated %in% c(-1,-3:-8), NA),
+           separated = replace(separated, separated == -2, 0),
+           divorced = replace(divorced, divorced %in% c(1:12), 1),
+           #divorced = replace(divorced, divorced %in% c(-1,-3:-8), NA),
+           divorced = replace(divorced, divorced == -2, 0)) %>%
+    dplyr::mutate(shock_sepdivNA = case_when( 
+      divorced == 0 & separated <0 ~ separated, 
+      divorced == 1 & separated == 0 ~ 1,
+      divorced == 1 & separated <0 ~ 1, 
+      divorced == 1 & separated == 1 ~ 1, 
+      divorced == 0 & separated == 0 ~ 0, 
+      divorced == 0 & separated <0 ~ separated,  
+      divorced == 0 & separated == 1 ~ 1, 
+      divorced<0 & separated == 0 ~ divorced, 
+      divorced<0 & separated == 1 ~ 1, 
+      divorced<0 & separated< 0 ~ divorced)) %>%
+    dplyr::mutate(shock_sepdiv = replace(shock_sepdivNA, shock_sepdivNA<0 , NA), 
                              # Age variables: 
                              age25_less = ifelse(age <= 25, 1, 0), 
                              age26_30 = ifelse(age >= 26 & age <=30, 1, 0), 
@@ -135,13 +160,13 @@ recoding <- function(df){
                              age56_60 = ifelse(age >= 56 & age <=60, 1, 0),  
                              age61_65 = ifelse(age >= 61 & age <=65, 1, 0)) %>%
     select(!c(disabled_degree, separated, divorced, gebjahr)) %>% # remove construction variables
-    mutate(UEPC = as.numeric(EP ==5 & UEPC ==1), # UEPC variable construction
+    dplyr::mutate(UEPC = as.numeric(EP ==5 & UEPC ==1), # UEPC variable construction
            EP = as.numeric(EP %in% c(1, 2, 3, 4, 6)), # EP variable construction
            OLF = as.numeric(OLF %in% c(1:5, 7:10, 13))) %>% # OLF variable construction
-    mutate(UE = 1-OLF-EP) %>% # UE variable construction
-    mutate(UEO = UE-UEPC) %>% # UEO variable construction
-    mutate(UEPC = replace(UEPC, OLF == 1, 0)) %>% # To correct for individuals who are OLF and also lost their job because of plant closure
-    mutate(UEO = replace(UEO, OLF == 1, 0)) # To correct for individuals who are OLF and also lost their job because of other reasons
+    dplyr::mutate(UE = 1-OLF-EP) %>% # UE variable construction
+    dplyr::mutate(UEO = UE-UEPC) %>% # UEO variable construction
+    dplyr::mutate(UEPC = replace(UEPC, OLF == 1, 0)) %>% # To correct for individuals who are OLF and also lost their job because of plant closure
+    dplyr::mutate(UEO = replace(UEO, OLF == 1, 0)) # To correct for individuals who are OLF and also lost their job because of other reasons
   return(df)
 }
 
@@ -205,18 +230,40 @@ universal <- PL %>%
 
 # 3 Generate main datasets -----------------------------------------------------
 ## 3.1 Apply filters -----------------------------------------------------------
-our_dataset <- universal %>% 
+main_dataset <- universal %>% 
   drop_na(syear, pid) %>% # exclude all observations with missing values in syear and pid
   mutate( gebjahr = replace(gebjahr, gebjahr<0, NA), # convert negative gebjahr to missing values 
           age = case_when(!is.na(gebjahr) ~ syear - gebjahr), # define age variable as:= sampleyear(year) - year born(gebjahr)
           age = replace (age, age<0, NA)) %>%  # exclude values where syear > gebjahr 
   filter(age>=21, age<=64,       # (1) Filter: Age between 21 and 64
          l11102 %in% c(1,2),     # (2) Filter: Place of living is Germany (either West:1 or East:2) 
-         syear %in% c(1992, 1994, 1996, 1997, 2001, 2005, 2007, 2009, 2011)) %>%
+         syear %in% c(1992, 1994, 1996, 1997, 2001, 2005, 2007, 2009, 2011)) %>% # (3) Filter: Choose waves as done in Kunze & Suppa (2007)
   renaming() %>% 
-  recoding() 
+  recoding()  %>% 
+  filter(!(yearseduNA==-2)) # (4) Filter: Drop all missing values of yearsedu, if they name "does not apply" (-2) as their source of missingness
+
+# 4 Subset data set ------------------------------------------------------------
+subdatasets <- list()
+main_vars <- c("culture", "cinema","volunteer", "social","help",  "sports")
+for (i in 1:length(main_vars)){
+  currentvar <- main_vars[i] # current main variable (e.g main_vars[1] = "culture", main_vars[2] = "cinema" ...)
+  allothermainvars <- main_vars[-(which(main_vars == currentvar))] # all other main variables except the current one 
+  df_crop <- main_dataset %>% 
+    select(!all_of(allothermainvars))# %>% # exclude all other main variables (e.g. for data set "culture" exclude: "cinema", "sports", "social", "help" and "volunteer" )
+  #drop_na(all_of(currentvar)) # exclude all missing values of the current main variable 
+  # df_crop <- df_crop[complete.cases(df_crop),] # only include complete cases! (remove all rows with NAs)
+  subdatasets[[i]] <- df_crop # add to list "subdatasets"
+  names(subdatasets)[i]<- paste0("d",currentvar) # rename entry of list 
+}
+# Complete case datasets:  
+subdatasets_cc <- lapply(subdatasets, function(x){ 
+  x <- x[complete.cases(x),]})
+names(subdatasets_cc) <- paste0(names(subdatasets_cc), "_cc")
+# Unlist "subdatasets" and "subdatasets_cc" and create 6x2 dataframes 
+# list2env( subdatasets , .GlobalEnv ) 
+# list2env( subdatasets_cc , .GlobalEnv ) 
+rm(df_crop, i, currentvar, allothermainvars)
 
 
 # remove irrelevant variables and dataframes from global console
 rm( HL, PEQUIV, PGEN, PL, PPATHL, universal, HGEN) 
-
